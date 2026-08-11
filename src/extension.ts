@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import * as vscode from "vscode";
 import { AcpClient } from "./acpClient";
-import { usageDataFromReasonixStatus } from "./acpProtocol";
+import { usageDataFromPattyStatus } from "./acpProtocol";
 import type {
   AgentCapabilities,
   AuthMethod,
@@ -15,7 +15,7 @@ import type {
   ModelInfo,
   PermissionRequestParams,
   PermissionRequestResult,
-  ReasonixSessionStatus,
+  PattySessionStatus,
   SessionConfigOption,
   SessionModeState,
   SessionModelState,
@@ -28,7 +28,7 @@ import { attachmentToBlock, isImageMime, mimeFromFileName, MAX_ATTACHMENTS, type
 import { buildEditorContextBlock, configuredSelectionMode, type IncludeSelectionMode } from "./editorContext";
 import { WorkspaceFileBridge } from "./fileBridge";
 import { DiffPreviewProvider } from "./preview";
-import { normalizeReasonixPath, selectReasonixPath } from "./reasonixLauncher";
+import { normalizePattyPath, selectPattyPath } from "./pattyLauncher";
 import { buildPromptBlocks } from "./resourceMentions";
 import { suggestWorkspaceResources } from "./resourceSuggestions";
 import { redactLocalPaths } from "./sanitize";
@@ -38,7 +38,7 @@ import { WorkspaceTerminalBridge } from "./terminalBridge";
 import { parseWebviewMessage } from "./webviewProtocol";
 
 const execFileAsync = promisify(execFile);
-const viewId = "reasonix.chat";
+const viewId = "pattyCode.chat";
 
 type WorkspaceChatState = {
   items: ChatItem[];
@@ -82,7 +82,7 @@ type ChatSnapshot = WorkspaceChatState & {
   cacheLabel?: string;
   locale: string;
   uiLanguage: UiLanguage;
-  settings: ReasonixSettings;
+  settings: PattySettings;
   sessions: SessionSummary[];
 };
 
@@ -101,7 +101,7 @@ type SessionSummary = {
   updatedAt: number;
 };
 
-type UiLanguage = "auto" | "en" | "zh-CN";
+type UiLanguage = "auto" | "en" | "ko-KR";
 type SettingKey = "binaryPath" | "model" | "uiLanguage" | "autoStart" | "trace" | "includeSelectionMode";
 type CollaborationMode = "normal" | "plan" | "goal";
 type TokenMode = "economy" | "balanced" | "delivery";
@@ -113,7 +113,7 @@ type McpSnapshot = {
   disconnected: string[];
 };
 
-type ReasonixSettings = {
+type PattySettings = {
   binaryPath: string;
   model: string;
   uiLanguage: UiLanguage;
@@ -129,13 +129,13 @@ type PendingApproval = {
 };
 
 export function activate(context: vscode.ExtensionContext): void {
-  const output = vscode.window.createOutputChannel("Reasonix");
+  const output = vscode.window.createOutputChannel("Patty Code");
   const preview = new DiffPreviewProvider();
   preview.register(context);
 
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  statusBar.command = "reasonix.openChat";
-  const provider = new ReasonixChatProvider(context, output, preview, statusBar);
+  statusBar.command = "pattyCode.openChat";
+  const provider = new PattyChatProvider(context, output, preview, statusBar);
   statusBar.show();
 
   context.subscriptions.push(
@@ -143,45 +143,45 @@ export function activate(context: vscode.ExtensionContext): void {
     output,
     statusBar,
     vscode.window.registerWebviewViewProvider(viewId, provider, { webviewOptions: { retainContextWhenHidden: true } }),
-    vscode.commands.registerCommand("reasonix.openChat", async () => {
-      await vscode.commands.executeCommand("workbench.view.extension.reasonix");
-      await vscode.commands.executeCommand("reasonix.chat.focus");
+    vscode.commands.registerCommand("pattyCode.openChat", async () => {
+      await vscode.commands.executeCommand("workbench.view.extension.pattyCode");
+      await vscode.commands.executeCommand("pattyCode.chat.focus");
     }),
-    vscode.commands.registerCommand("reasonix.newSession", () => provider.newSession()),
-    vscode.commands.registerCommand("reasonix.sendSelection", () => provider.sendSelection()),
-    vscode.commands.registerCommand("reasonix.cancelTurn", () => provider.cancelTurn()),
-    vscode.commands.registerCommand("reasonix.pickModel", () => provider.pickModel()),
-    vscode.commands.registerCommand("reasonix.pickEffort", () => provider.pickEffort()),
-    vscode.commands.registerCommand("reasonix.pickUiLanguage", () => provider.pickUiLanguage()),
-    vscode.commands.registerCommand("reasonix.selectBinary", () => selectReasonixBinary()),
-    vscode.commands.registerCommand("reasonix.openSettings", () => provider.openSettings()),
-    vscode.commands.registerCommand("reasonix.showOutput", () => output.show()),
+    vscode.commands.registerCommand("pattyCode.newSession", () => provider.newSession()),
+    vscode.commands.registerCommand("pattyCode.sendSelection", () => provider.sendSelection()),
+    vscode.commands.registerCommand("pattyCode.cancelTurn", () => provider.cancelTurn()),
+    vscode.commands.registerCommand("pattyCode.pickModel", () => provider.pickModel()),
+    vscode.commands.registerCommand("pattyCode.pickEffort", () => provider.pickEffort()),
+    vscode.commands.registerCommand("pattyCode.pickUiLanguage", () => provider.pickUiLanguage()),
+    vscode.commands.registerCommand("pattyCode.selectBinary", () => selectPattyBinary()),
+    vscode.commands.registerCommand("pattyCode.openSettings", () => provider.openSettings()),
+    vscode.commands.registerCommand("pattyCode.showOutput", () => output.show()),
     vscode.window.onDidChangeActiveTextEditor(() => provider.refreshActiveWorkspace()),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (
-        event.affectsConfiguration("reasonix.uiLanguage") ||
-        event.affectsConfiguration("reasonix.includeSelectionMode") ||
-        event.affectsConfiguration("reasonix.model") ||
-        event.affectsConfiguration("reasonix.binaryPath") ||
-        event.affectsConfiguration("reasonix.autoStart") ||
-        event.affectsConfiguration("reasonix.trace")
+        event.affectsConfiguration("pattyCode.uiLanguage") ||
+        event.affectsConfiguration("pattyCode.includeSelectionMode") ||
+        event.affectsConfiguration("pattyCode.model") ||
+        event.affectsConfiguration("pattyCode.binaryPath") ||
+        event.affectsConfiguration("pattyCode.autoStart") ||
+        event.affectsConfiguration("pattyCode.trace")
       ) {
         provider.refreshActiveWorkspace();
       }
     }),
   );
-  if (process.env.REASONIX_TEST_COMMANDS === "1") {
+  if (process.env.PATTY_TEST_COMMANDS === "1") {
     context.subscriptions.push(
-      vscode.commands.registerCommand("reasonix.test.sendPrompt", async (text: unknown, toolApprovalMode: unknown) => {
+      vscode.commands.registerCommand("pattyCode.test.sendPrompt", async (text: unknown, toolApprovalMode: unknown) => {
         await provider.testSendPrompt(
           typeof text === "string" ? text : "",
           toolApprovalMode === "auto" || toolApprovalMode === "yolo" ? toolApprovalMode : "ask",
         );
       }),
-      vscode.commands.registerCommand("reasonix.test.webviewMessage", async (message: unknown) => {
+      vscode.commands.registerCommand("pattyCode.test.webviewMessage", async (message: unknown) => {
         await provider.testWebviewMessage(message);
       }),
-      vscode.commands.registerCommand("reasonix.test.snapshot", () => provider.testSnapshot()),
+      vscode.commands.registerCommand("pattyCode.test.snapshot", () => provider.testSnapshot()),
     );
   }
   provider.refreshActiveWorkspace();
@@ -189,7 +189,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {}
 
-class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposable {
+class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable {
   private view?: vscode.WebviewView;
   private readonly clients = new Map<string, AcpClient>();
   private readonly terminals = new Map<string, WorkspaceTerminalBridge>();
@@ -263,7 +263,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }, undefined, this.context.subscriptions);
     this.postSnapshot(undefined, true);
 
-    if (vscode.workspace.getConfiguration("reasonix").get<boolean>("autoStart", false)) {
+    if (vscode.workspace.getConfiguration("pattyCode").get<boolean>("autoStart", false)) {
       void this.ensureClient();
     }
   }
@@ -275,13 +275,13 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   async newSession(): Promise<void> {
     const folder = this.currentWorkspaceFolder();
     if (!folder) {
-      void vscode.window.showErrorMessage("Open a workspace folder before starting Reasonix.");
+      void vscode.window.showErrorMessage("Open a workspace folder before starting Patty Code.");
       return;
     }
     const key = workspaceKey(folder);
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before starting a new session.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before starting a new session.");
       return;
     }
     this.clearPendingApprovals(key);
@@ -292,7 +292,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       try {
         await current.closeSession();
       } catch (err) {
-        this.appendOutput(`Reasonix session close failed: ${errorMessage(err)}`, folder);
+        this.appendOutput(`Patty Code session close failed: ${errorMessage(err)}`, folder);
       }
     }
     current?.dispose();
@@ -318,7 +318,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   }
 
   async sendSelection(): Promise<void> {
-    await vscode.commands.executeCommand("workbench.view.extension.reasonix");
+    await vscode.commands.executeCommand("workbench.view.extension.pattyCode");
     const ctx = buildEditorContextBlock("nearby");
     if (!ctx) {
       void vscode.window.showInformationMessage("No editor context is available.");
@@ -349,7 +349,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching model.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching model.");
       this.postSnapshot();
       return;
     }
@@ -370,7 +370,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         description: model.value === currentValue ? "current" : model.value,
         detail: model.description,
         value: model.value,
-      })), { title: "Reasonix model" });
+      })), { title: "Patty Code model" });
       if (!picked || picked.value === currentValue) {
         return;
       }
@@ -383,19 +383,19 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       models = await client.listModels();
     } catch (err) {
       state.status = "Model list unavailable";
-      this.appendOutput(`Reasonix model list unavailable: ${errorMessage(err)}`, folder);
+      this.appendOutput(`Patty Code model list unavailable: ${errorMessage(err)}`, folder);
       this.postSnapshot();
-      void vscode.window.showInformationMessage("This Reasonix backend did not advertise a model selector.", "Open Settings").then((action) => {
+      void vscode.window.showInformationMessage("This Patty Code backend did not advertise a model selector.", "Open Settings").then((action) => {
         if (action === "Open Settings") {
-          void vscode.commands.executeCommand("workbench.action.openSettings", "reasonix.model");
+          void vscode.commands.executeCommand("workbench.action.openSettings", "pattyCode.model");
         }
       });
       return;
     }
     state.models = models.models;
-    const legacy = await vscode.window.showQuickPick(models.models.map((model) => ({ label: model.ref, model })), { title: "Reasonix model" });
+    const legacy = await vscode.window.showQuickPick(models.models.map((model) => ({ label: model.ref, model })), { title: "Patty Code model" });
     if (legacy) {
-      await vscode.workspace.getConfiguration("reasonix").update("model", legacy.model.ref, vscode.ConfigurationTarget.Workspace);
+      await vscode.workspace.getConfiguration("pattyCode").update("model", legacy.model.ref, vscode.ConfigurationTarget.Workspace);
       state.status = `Model: ${legacy.model.ref} (next session)`;
       this.postSnapshot();
     }
@@ -409,7 +409,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching effort.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching effort.");
       return;
     }
     const client = await this.ensureClient(folder);
@@ -424,7 +424,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         description: option.value === effortOption.currentValue ? "current" : option.value,
         detail: option.description,
         value: option.value,
-      })), { title: "Reasonix reasoning effort" });
+      })), { title: "Patty Code reasoning effort" });
       if (!picked || picked.value === effortOption.currentValue) {
         return;
       }
@@ -432,7 +432,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       return;
     }
 
-    void vscode.window.showInformationMessage("The current Reasonix session did not advertise configurable reasoning effort.");
+    void vscode.window.showInformationMessage("The current Patty Code session did not advertise configurable reasoning effort.");
   }
 
   private async setModel(value: string): Promise<void> {
@@ -444,7 +444,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching model.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching model.");
       this.postSnapshot();
       return;
     }
@@ -467,10 +467,10 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       await client.setModel(value);
       this.syncSessionState(state, client.sessionState);
       state.status = `Model: ${option.label}`;
-      await vscode.workspace.getConfiguration("reasonix").update("model", value, vscode.ConfigurationTarget.Workspace);
+      await vscode.workspace.getConfiguration("pattyCode").update("model", value, vscode.ConfigurationTarget.Workspace);
     } catch (err) {
-      this.appendOutput(`Reasonix model update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showErrorMessage(`Reasonix could not switch models: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code model update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showErrorMessage(`Patty Code could not switch models: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -485,7 +485,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching effort.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching effort.");
       this.postSnapshot();
       return;
     }
@@ -512,8 +512,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       this.syncSessionState(state, client.sessionState);
       state.status = `Effort: ${selection.name}`;
     } catch (err) {
-      this.appendOutput(`Reasonix effort update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Reasonix could not update reasoning effort: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code effort update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Patty Code could not update reasoning effort: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -527,7 +527,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching execution method.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching execution method.");
       this.postSnapshot();
       return;
     }
@@ -549,8 +549,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       state.executionMode = value;
       state.status = `Execution: ${value}`;
     } catch (err) {
-      this.appendOutput(`Reasonix execution method update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Reasonix could not switch execution method: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code execution method update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Patty Code could not switch execution method: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -564,7 +564,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching work mode.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching work mode.");
       this.postSnapshot();
       return;
     }
@@ -601,8 +601,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       state.workMode = value;
       state.status = `Work mode: ${value}`;
     } catch (err) {
-      this.appendOutput(`Reasonix work mode update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Reasonix could not switch work mode: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code work mode update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Patty Code could not switch work mode: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -616,7 +616,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching tool approvals.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching tool approvals.");
       this.postSnapshot();
       return;
     }
@@ -648,8 +648,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       state.toolApprovalMode = value;
       state.status = `Tool approvals: ${value}`;
     } catch (err) {
-      this.appendOutput(`Reasonix tool approval update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Reasonix could not switch tool approvals: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code tool approval update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Patty Code could not switch tool approvals: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -660,24 +660,24 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     const picked = await vscode.window.showQuickPick(
       [
         { label: "Auto", description: "Follow VS Code", value: "auto" satisfies UiLanguage },
-        { label: "English", description: "Reasonix UI", value: "en" satisfies UiLanguage },
-        { label: "简体中文", description: "Reasonix 界面", value: "zh-CN" satisfies UiLanguage },
+        { label: "English", description: "Patty Code UI", value: "en" satisfies UiLanguage },
+        { label: "한국어", description: "Patty Code 인터페이스", value: "ko-KR" satisfies UiLanguage },
       ],
       {
-        title: "Reasonix UI Language",
+        title: "Patty Code UI Language",
         placeHolder: current,
       },
     );
     if (!picked) {
       return;
     }
-    await vscode.workspace.getConfiguration("reasonix").update("uiLanguage", picked.value, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration("pattyCode").update("uiLanguage", picked.value, vscode.ConfigurationTarget.Global);
     this.postSnapshot();
   }
 
   async openSettings(): Promise<void> {
-    await vscode.commands.executeCommand("workbench.view.extension.reasonix");
-    await vscode.commands.executeCommand("reasonix.chat.focus");
+    await vscode.commands.executeCommand("workbench.view.extension.pattyCode");
+    await vscode.commands.executeCommand("pattyCode.chat.focus");
     this.postSnapshot();
     void this.view?.webview.postMessage({ type: "openSettings" });
   }
@@ -759,11 +759,11 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         await this.pickUiLanguage();
         return;
       case "selectBinary":
-        await selectReasonixBinary();
+        await selectPattyBinary();
         this.postSnapshot();
         return;
       case "openNativeSettings":
-        await vscode.commands.executeCommand("workbench.action.openSettings", "reasonix");
+        await vscode.commands.executeCommand("workbench.action.openSettings", "pattyCode");
         return;
       case "updateSetting":
         await this.updateSetting(message.key, message.value);
@@ -817,12 +817,12 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   }
 
   private async setContextMode(mode: IncludeSelectionMode): Promise<void> {
-    await vscode.workspace.getConfiguration("reasonix").update("includeSelectionMode", mode, vscode.ConfigurationTarget.Workspace);
+    await vscode.workspace.getConfiguration("pattyCode").update("includeSelectionMode", mode, vscode.ConfigurationTarget.Workspace);
     this.postSnapshot();
   }
 
   private async updateSetting(key: SettingKey, value: string | boolean): Promise<void> {
-    const config = vscode.workspace.getConfiguration("reasonix");
+    const config = vscode.workspace.getConfiguration("pattyCode");
     switch (key) {
       case "binaryPath":
         if (typeof value === "string") {
@@ -835,7 +835,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         }
         break;
       case "uiLanguage":
-        if (value === "auto" || value === "en" || value === "zh-CN") {
+        if (value === "auto" || value === "en" || value === "ko-KR") {
           await config.update("uiLanguage", value, vscode.ConfigurationTarget.Global);
         }
         break;
@@ -863,12 +863,12 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   private async loadSession(sessionId: string): Promise<void> {
     const folder = this.currentWorkspaceFolder();
     if (!folder) {
-      void vscode.window.showErrorMessage("Open a workspace folder before loading a Reasonix session.");
+      void vscode.window.showErrorMessage("Open a workspace folder before loading a Patty Code session.");
       return;
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Reasonix is running. Cancel the current turn before switching sessions.");
+      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching sessions.");
       return;
     }
     if (state.sessionId === sessionId && this.clients.get(workspaceKey(folder))?.connected) {
@@ -906,12 +906,12 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Cancel the current Reasonix turn before deleting a session.");
+      void vscode.window.showWarningMessage("Cancel the current Patty Code turn before deleting a session.");
       return;
     }
     const entry = (state.sessions ?? this.sessionHistory(folder)).find((session) => session.id === sessionId);
     const action = await vscode.window.showWarningMessage(
-      `Delete Reasonix session "${entry?.title ?? sessionId}"?`,
+      `Delete Patty Code session "${entry?.title ?? sessionId}"?`,
       { modal: true },
       "Delete",
     );
@@ -943,7 +943,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       }
       this.postSnapshot(transcriptReset ? 0 : undefined);
     } catch (err) {
-      void vscode.window.showErrorMessage(`Could not delete Reasonix session: ${errorMessage(err)}`);
+      void vscode.window.showErrorMessage(`Could not delete Patty Code session: ${errorMessage(err)}`);
     }
   }
 
@@ -1011,7 +1011,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       attachments.push({ kind, name, uri: uri.toString(), mimeType });
     }
     if (skippedImage) {
-      const text = "The connected Reasonix does not support image prompts; image files were skipped.";
+      const text = "The connected Patty Code does not support image prompts; image files were skipped.";
       if (state) {
         this.postSnapshot(appendNotice(state.items, text));
       } else {
@@ -1030,7 +1030,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     }
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      void vscode.window.showInformationMessage("Open an editor before inserting a Reasonix message.");
+      void vscode.window.showInformationMessage("Open an editor before inserting a Patty Code message.");
       return;
     }
     await editor.edit((edit) => edit.insert(editor.selection.active, text));
@@ -1072,7 +1072,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     const target = path.resolve(root, location.path);
     const relative = path.relative(root, target);
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
-      void vscode.window.showWarningMessage("Reasonix tool locations outside the workspace cannot be opened.");
+      void vscode.window.showWarningMessage("Patty Code tool locations outside the workspace cannot be opened.");
       return;
     }
     try {
@@ -1085,7 +1085,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
       }
     } catch (err) {
-      void vscode.window.showErrorMessage(`Could not open Reasonix tool location: ${errorMessage(err)}`);
+      void vscode.window.showErrorMessage(`Could not open Patty Code tool location: ${errorMessage(err)}`);
     }
   }
 
@@ -1146,7 +1146,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   ): Promise<void> {
     const folder = this.currentWorkspaceFolder();
     if (!folder) {
-      void vscode.window.showErrorMessage("Open a workspace folder before starting Reasonix.");
+      void vscode.window.showErrorMessage("Open a workspace folder before starting Patty Code.");
       return;
     }
     const state = this.stateFor(folder);
@@ -1206,11 +1206,11 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         if (result.stopReason === "cancelled") {
           this.postSnapshot(appendNotice(state.items, "Turn cancelled."));
         } else if (result.stopReason === "error") {
-          this.postSnapshot(appendNotice(state.items, "Turn ended with an error. Check the Reasonix output channel."));
+          this.postSnapshot(appendNotice(state.items, "Turn ended with an error. Check the Patty Code output channel."));
         }
       } catch (err) {
-        this.postSnapshot(appendNotice(state.items, `Reasonix error: ${errorMessage(err)}`));
-        this.appendOutput(`Reasonix prompt failed: ${errorMessage(err)}`, folder);
+        this.postSnapshot(appendNotice(state.items, `Patty Code error: ${errorMessage(err)}`));
+        this.appendOutput(`Patty Code prompt failed: ${errorMessage(err)}`, folder);
       } finally {
         state.running = false;
         state.status = state.disconnected ? "Disconnected" : "Idle";
@@ -1294,8 +1294,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         }
       }
     } catch (err) {
-      this.appendOutput(`Reasonix composer mode update failed: ${errorMessage(err)}`, folder);
-      throw new Error(`Could not apply Reasonix composer mode: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code composer mode update failed: ${errorMessage(err)}`, folder);
+      throw new Error(`Could not apply Patty Code composer mode: ${errorMessage(err)}`);
     }
   }
 
@@ -1321,12 +1321,12 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
 
   private async startClient(folder: vscode.WorkspaceFolder): Promise<AcpClient | undefined> {
     const key = workspaceKey(folder);
-    const binaryPath = await resolveReasonixBinary();
+    const binaryPath = await resolvePattyBinary();
     if (!binaryPath) {
       return undefined;
     }
     const state = this.stateFor(folder);
-    const config = vscode.workspace.getConfiguration("reasonix");
+    const config = vscode.workspace.getConfiguration("pattyCode");
     const model = config.get<string>("model", "");
     const trace = config.get<boolean>("trace", false);
     const previousSessionId = this.context.workspaceState.get<string>(this.sessionStorageKey(folder));
@@ -1354,7 +1354,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       onUpdate: (params) => this.handleSessionUpdate(folder, params),
       onPermissionRequest: (params) => this.handlePermissionRequest(folder, params),
       onDisconnect: (reason) => {
-        this.appendOutput(`Reasonix ACP disconnected: ${reason}`, folder);
+        this.appendOutput(`Patty Code ACP disconnected: ${reason}`, folder);
         if (this.clients.get(key) !== client) {
           return;
         }
@@ -1376,7 +1376,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         this.syncSessionState(state, sessionState);
         this.postSnapshot();
       },
-      onReasonixStatus: (status, event) => this.handleReasonixStatus(folder, status, event),
+      onPattyStatus: (status, event) => this.handlePattyStatus(folder, status, event),
     });
     this.clients.set(key, client);
     try {
@@ -1401,8 +1401,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       this.disposeTerminalBridge(key);
       state.disconnected = true;
       state.status = "Start failed";
-      const transcriptStart = appendNotice(state.items, `Could not start Reasonix: ${errorMessage(err)}`);
-      this.appendOutput(`Reasonix start failed: ${errorMessage(err)}`, folder);
+      const transcriptStart = appendNotice(state.items, `Could not start Patty Code: ${errorMessage(err)}`);
+      this.appendOutput(`Patty Code start failed: ${errorMessage(err)}`, folder);
       this.postSnapshot(transcriptStart);
       return undefined;
     }
@@ -1464,7 +1464,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     this.postSnapshot(transcriptStart);
   }
 
-  private handleReasonixStatus(folder: vscode.WorkspaceFolder, status: ReasonixSessionStatus, event?: string): void {
+  private handlePattyStatus(folder: vscode.WorkspaceFolder, status: PattySessionStatus, event?: string): void {
     if (event !== undefined && event !== "usage") {
       return;
     }
@@ -1473,7 +1473,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       this.appendOutput(`Ignored status for inactive session ${status.sessionId}`, folder);
       return;
     }
-    const usage = usageDataFromReasonixStatus(status);
+    const usage = usageDataFromPattyStatus(status);
     const turnHasUsage = usage.totalTokens > 0 || usage.cacheHitTokens > 0 || usage.cacheMissTokens > 0 || usage.cost !== undefined;
     const cumulative = status.usage.cumulative;
     const sessionHasUsage = cumulative.promptTokens > 0 || cumulative.completionTokens > 0
@@ -1507,7 +1507,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       try {
         await this.preview.previewPermission(params, folder);
       } catch (err) {
-        this.appendOutput(`Reasonix diff preview failed: ${errorMessage(err)}`, folder);
+        this.appendOutput(`Patty Code diff preview failed: ${errorMessage(err)}`, folder);
       }
     }
 
@@ -1521,9 +1521,9 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       this.view.show();
     } else {
       try {
-        await vscode.commands.executeCommand("reasonix.openChat");
+        await vscode.commands.executeCommand("pattyCode.openChat");
       } catch (err) {
-        this.appendOutput(`Could not reveal Reasonix approval: ${errorMessage(err)}`, folder);
+        this.appendOutput(`Could not reveal Patty Code approval: ${errorMessage(err)}`, folder);
       }
     }
 
@@ -1559,7 +1559,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         params.options
           .filter((option) => !option.kind.startsWith("reject") && !option.optionId.endsWith(":cancel"))
           .map((option) => ({ label: option.name, optionId: option.optionId })),
-        { title: params.toolCall.title ?? "Reasonix question", placeHolder: "Choose an answer" },
+        { title: params.toolCall.title ?? "Patty Code question", placeHolder: "Choose an answer" },
       );
       return picked ? { outcome: { outcome: "selected", optionId: picked.optionId } } : { outcome: { outcome: "cancelled" } };
     }
@@ -1638,7 +1638,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
         updatedAt: session.updatedAt ? Date.parse(session.updatedAt) || 0 : 0,
       })).sort((a, b) => b.updatedAt - a.updatedAt);
     } catch (err) {
-      this.appendOutput(`Reasonix session list failed: ${errorMessage(err)}`, folder);
+      this.appendOutput(`Patty Code session list failed: ${errorMessage(err)}`, folder);
     }
   }
 
@@ -1651,7 +1651,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     const attempt = (this.reconnectAttempts.get(key) ?? 0) + 1;
     if (attempt > 3) {
       state.status = "Reconnect failed";
-      this.postSnapshot(appendNotice(state.items, "Reasonix disconnected repeatedly. Send another prompt to retry, or check the output channel."));
+      this.postSnapshot(appendNotice(state.items, "Patty Code disconnected repeatedly. Send another prompt to retry, or check the output channel."));
       return;
     }
     this.reconnectAttempts.set(key, attempt);
@@ -1772,7 +1772,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       return state.sessionModels.availableModels.find((model) => model.modelId === state.sessionModels?.currentModelId)?.name
         ?? state.sessionModels.currentModelId;
     }
-    const configured = vscode.workspace.getConfiguration("reasonix").get<string>("model", "").trim();
+    const configured = vscode.workspace.getConfiguration("pattyCode").get<string>("model", "").trim();
     const current = this.currentModel(state);
     if (configured) {
       return configured;
@@ -1959,7 +1959,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   }
 
   private currentModelFromList(models: ModelInfo[] | undefined): ModelInfo | undefined {
-    const configured = vscode.workspace.getConfiguration("reasonix").get<string>("model", "").trim();
+    const configured = vscode.workspace.getConfiguration("pattyCode").get<string>("model", "").trim();
     return models?.find((model) => model.ref === configured) ?? models?.find((model) => model.current);
   }
 
@@ -1975,14 +1975,14 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
   <link rel="stylesheet" href="${styleUri}">
-  <title>Reasonix</title>
+  <title>Patty Code</title>
 </head>
-<body data-reasonix-mark-src="${markUri}">
+<body data-patty-mark-src="${markUri}">
   <div class="shell">
     <aside class="session-rail" aria-labelledby="sessionRailTitle">
       <div class="session-rail__brand">
         <img src="${markUri}" alt="" aria-hidden="true">
-        <span>Reasonix</span>
+        <span>Patty Code</span>
       </div>
       <button id="railNewSession" class="rail-new-session" type="button">
         <span aria-hidden="true">+</span>
@@ -2001,7 +2001,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     <section class="workbench">
       <header class="topbar">
       <div class="brand-stack">
-        <div class="brand-title">REASONIX</div>
+        <div class="brand-title">PATTY CODE</div>
         <div class="brand-meta">
           <span id="statusDot" class="status-dot"></span>
           <span id="status" class="status">Idle</span>
@@ -2027,7 +2027,7 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
       <form id="composer" class="composer">
       <div id="connectionNotice" class="connection-notice" role="status" aria-live="polite" hidden>
         <span class="connection-notice__indicator" aria-hidden="true"></span>
-        <span id="connectionNoticeText" class="connection-notice__text">Reasonix is not connected</span>
+        <span id="connectionNoticeText" class="connection-notice__text">Patty Code is not connected</span>
         <div class="connection-notice__actions">
           <button id="connectionConnect" class="connection-notice__action connection-notice__action--primary" type="button">Connect</button>
           <button id="connectionSettings" class="connection-notice__action" type="button" hidden>Settings</button>
@@ -2141,11 +2141,11 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   }
 
   private sessionStorageKey(folder: vscode.WorkspaceFolder): string {
-    return `reasonix.session.${workspaceKey(folder)}`;
+    return `pattyCode.session.${workspaceKey(folder)}`;
   }
 
   private sessionHistoryKey(folder: vscode.WorkspaceFolder): string {
-    return `reasonix.sessionHistory.${workspaceKey(folder)}`;
+    return `pattyCode.sessionHistory.${workspaceKey(folder)}`;
   }
 
   private sessionHistory(folder: vscode.WorkspaceFolder): SessionSummary[] {
@@ -2181,8 +2181,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
 
   private updateStatusBar(folder: vscode.WorkspaceFolder | undefined): void {
     if (!folder) {
-      this.statusBar.text = "$(sparkle) Reasonix";
-      this.statusBar.tooltip = "Open a workspace folder to use Reasonix.";
+      this.statusBar.text = "$(sparkle) Patty Code";
+      this.statusBar.tooltip = "Open a workspace folder to use Patty Code.";
       return;
     }
     const state = this.stateFor(folder);
@@ -2190,8 +2190,8 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
     const usage = state.usage;
     const denom = usage ? usage.sessionCacheHitTokens + usage.sessionCacheMissTokens : 0;
     const hitRate = usage && denom > 0 ? Math.round((usage.sessionCacheHitTokens / denom) * 100) : undefined;
-    this.statusBar.text = hitRate === undefined ? `$(sparkle) Reasonix: ${visibleStatus}` : `$(sparkle) Reasonix cache ${hitRate}%`;
-    const tooltip = [`Reasonix ${folder.name}`, visibleStatus];
+    this.statusBar.text = hitRate === undefined ? `$(sparkle) Patty Code: ${visibleStatus}` : `$(sparkle) Patty Code cache ${hitRate}%`;
+    const tooltip = [`Patty Code ${folder.name}`, visibleStatus];
     if (usage) {
       tooltip.push(`Tokens: ${usage.totalTokens}`);
     }
@@ -2206,52 +2206,52 @@ class ReasonixChatProvider implements vscode.WebviewViewProvider, vscode.Disposa
   }
 }
 
-async function resolveReasonixBinary(): Promise<string | undefined> {
-  const configured = vscode.workspace.getConfiguration("reasonix").get<string>("binaryPath", "").trim();
+async function resolvePattyBinary(): Promise<string | undefined> {
+  const configured = vscode.workspace.getConfiguration("pattyCode").get<string>("binaryPath", "").trim();
   if (configured !== "") {
-    return await normalizeReasonixPath(configured);
+    return await normalizePattyPath(configured);
   }
   const command = process.platform === "win32" ? "where" : "which";
   try {
-    const { stdout } = await execFileAsync(command, ["reasonix"]);
-    const resolved = selectReasonixPath(stdout);
+    const { stdout } = await execFileAsync(command, ["patcode"]);
+    const resolved = selectPattyPath(stdout);
     if (resolved) {
-      return await normalizeReasonixPath(resolved);
+      return await normalizePattyPath(resolved);
     }
   } catch {
     // Fall through to the user-facing install prompt.
   }
   const action = await vscode.window.showErrorMessage(
-    "Reasonix CLI was not found on PATH. Select an installed binary or follow the Reasonix installation guide.",
+    "Patty Code CLI was not found on PATH. Select an installed binary or follow the Patty Code installation guide.",
     "Select Binary",
     "Installation Guide",
     "Open Settings",
   );
   if (action === "Select Binary") {
-    return await selectReasonixBinary();
+    return await selectPattyBinary();
   }
   if (action === "Installation Guide") {
-    await vscode.env.openExternal(vscode.Uri.parse("https://github.com/esengine/DeepSeek-Reasonix#installation"));
+    await vscode.env.openExternal(vscode.Uri.parse("https://github.com/patrickrho-patty/patty-code#installation"));
   } else if (action === "Open Settings") {
-    await vscode.commands.executeCommand("workbench.action.openSettings", "reasonix.binaryPath");
+    await vscode.commands.executeCommand("workbench.action.openSettings", "pattyCode.binaryPath");
   }
   return undefined;
 }
 
-async function selectReasonixBinary(): Promise<string | undefined> {
+async function selectPattyBinary(): Promise<string | undefined> {
   const picked = await vscode.window.showOpenDialog({
     canSelectFiles: true,
     canSelectFolders: false,
     canSelectMany: false,
-    openLabel: "Use Reasonix CLI",
-    title: "Select the Reasonix executable",
+    openLabel: "Use Patty Code CLI",
+    title: "Select the Patty Code executable",
   });
   const selected = picked?.[0]?.fsPath;
   if (!selected) {
     return undefined;
   }
-  await vscode.workspace.getConfiguration("reasonix").update("binaryPath", selected, vscode.ConfigurationTarget.Global);
-  return await normalizeReasonixPath(selected);
+  await vscode.workspace.getConfiguration("pattyCode").update("binaryPath", selected, vscode.ConfigurationTarget.Global);
+  return await normalizePattyPath(selected);
 }
 
 function workspaceKey(folder: vscode.WorkspaceFolder): string {
@@ -2262,8 +2262,8 @@ function emptyState(): WorkspaceChatState {
   return { items: [], running: false, disconnected: true, status: "Disconnected", mcp: { connected: [], configured: [], disconnected: [] } };
 }
 
-function currentSettings(): ReasonixSettings {
-  const config = vscode.workspace.getConfiguration("reasonix");
+function currentSettings(): PattySettings {
+  const config = vscode.workspace.getConfiguration("pattyCode");
   const includeSelectionMode = configuredSelectionMode();
   return {
     binaryPath: config.get<string>("binaryPath", ""),
@@ -2276,8 +2276,8 @@ function currentSettings(): ReasonixSettings {
 }
 
 function configuredUiLanguage(): UiLanguage {
-  const value = vscode.workspace.getConfiguration("reasonix").get<string>("uiLanguage", "auto");
-  return value === "en" || value === "zh-CN" || value === "auto" ? value : "auto";
+  const value = vscode.workspace.getConfiguration("pattyCode").get<string>("uiLanguage", "auto");
+  return value === "en" || value === "ko-KR" || value === "auto" ? value : "auto";
 }
 
 function effectiveUiLocale(): string {
@@ -2357,7 +2357,7 @@ function isSessionSummary(value: unknown): value is SessionSummary {
 }
 
 function permissionNotification(params: PermissionRequestParams): string {
-  const lines = [`Reasonix wants to run ${params.toolCall.title ?? "a tool"}.`];
+  const lines = [`Patty Code wants to run ${params.toolCall.title ?? "a tool"}.`];
   if (params.toolCall.preview) {
     lines.push(`${params.toolCall.preview.path} (+${params.toolCall.preview.added} -${params.toolCall.preview.removed})`);
   }

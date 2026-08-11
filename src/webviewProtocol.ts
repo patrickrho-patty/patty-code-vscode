@@ -190,7 +190,7 @@ function parseUpdateSetting(value: Record<string, unknown>): WebviewToHostMessag
     case "model":
       return typeof value.value === "string" ? { command: "updateSetting", key: value.key, value: value.value } : undefined;
     case "uiLanguage":
-      return value.value === "auto" || value.value === "en" || value.value === "zh-CN"
+      return value.value === "auto" || value.value === "en" || value.value === "ko-KR"
         ? { command: "updateSetting", key: value.key, value: value.value }
         : undefined;
     case "includeSelectionMode":

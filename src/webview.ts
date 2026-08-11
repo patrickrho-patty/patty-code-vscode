@@ -15,7 +15,7 @@ declare function acquireVsCodeApi(): {
 };
 
 type IncludeSelectionMode = "off" | "selectionOnly" | "nearby";
-type UiLanguage = "auto" | "en" | "zh-CN";
+type UiLanguage = "auto" | "en" | "ko-KR";
 type SettingKey = "binaryPath" | "model" | "uiLanguage" | "autoStart" | "trace" | "includeSelectionMode";
 type CollaborationMode = "normal" | "plan" | "goal";
 type TokenMode = "economy" | "balanced" | "delivery";
@@ -1002,7 +1002,7 @@ function renderConnectionNotice(state: Snapshot): void {
     ? label("reconnecting")
     : failed
       ? label("connectionFailed")
-      : label("reasonixNotConnected");
+      : label("pattyNotConnected");
   connectionConnect.hidden = reconnecting;
   connectionConnect.textContent = failed ? label("retry") : label("connect");
   connectionSettings.hidden = !failed;
@@ -1768,7 +1768,7 @@ function renderSettings(state: Snapshot): void {
     content.append(
       settingsSection(
         label("apiConfiguration"),
-        staticSettingRow(label("apiProvider"), "Reasonix ACP"),
+        staticSettingRow(label("apiProvider"), "Patty Code ACP"),
         staticSettingRow(label("mcpServers"), mcpSummary(state.mcp)),
         textSettingRow("binaryPath", label("cliPath"), state.settings.binaryPath, label("pathPlaceholder")),
         textSettingRow("model", label("modelOverride"), state.settings.model, label("modelPlaceholder")),
@@ -1786,7 +1786,7 @@ function renderSettings(state: Snapshot): void {
         segmentedSetting("uiLanguage", state.settings.uiLanguage, [
           ["auto", label("autoLanguage")],
           ["en", label("english")],
-          ["zh-CN", label("chinese")],
+          ["ko-KR", label("korean")],
         ]),
         segmentedSetting("includeSelectionMode", state.settings.includeSelectionMode, [
           ["selectionOnly", label("selection")],
@@ -2019,11 +2019,11 @@ function renderEmptyState(state: Snapshot): HTMLElement {
   const node = document.createElement("section");
   node.className = "empty-state";
   const mark = document.createElement("div");
-  mark.className = "reasonix-mark";
-  const markSrc = document.body.dataset.reasonixMarkSrc;
+  mark.className = "patty-mark";
+  const markSrc = document.body.dataset.pattyMarkSrc;
   if (markSrc) {
     const logo = document.createElement("img");
-    logo.className = "reasonix-mark__logo";
+    logo.className = "patty-mark__logo";
     logo.src = markSrc;
     logo.alt = "";
     logo.decoding = "async";
@@ -2037,7 +2037,7 @@ function renderEmptyState(state: Snapshot): HTMLElement {
   const brand = document.createElement("div");
   brand.className = "empty-brand";
   const brandName = document.createElement("span");
-  brandName.textContent = "Reasonix";
+  brandName.textContent = "Patty Code";
   brand.append(mark, brandName);
   const title = document.createElement("div");
   title.className = "empty-title";
@@ -2922,7 +2922,7 @@ function roleLabel(role: "user" | "assistant" | "thought" | "notice"): string {
     case "user":
       return label("user");
     case "assistant":
-      return "Reasonix";
+      return "Patty Code";
     case "thought":
       return label("thought");
     case "notice":
@@ -3087,7 +3087,7 @@ function stringArray(value: unknown): string[] {
 }
 
 function isUiLanguage(value: unknown): value is UiLanguage {
-  return value === "auto" || value === "en" || value === "zh-CN";
+  return value === "auto" || value === "en" || value === "ko-KR";
 }
 
 function isContextMode(value: unknown): value is IncludeSelectionMode {
@@ -3227,7 +3227,7 @@ type LabelKey =
   | "pickModel"
   | "read"
   | "question"
-  | "reasonixNotConnected"
+  | "pattyNotConnected"
   | "readyTitle"
   | "reasoning"
   | "reasoningEffort"
@@ -3274,13 +3274,13 @@ type LabelKey =
   | "workDeliveryDetail"
   | "yolo"
   | "yoloDetail"
-  | "chinese"
+  | "korean"
   | "cliPath"
   | "interface"
   | "openVsCodeSettings"
   | "save";
 
-const labels: Record<"en" | "zh", Record<LabelKey, string>> = {
+const labels: Record<"en" | "ko", Record<LabelKey, string>> = {
   en: {
     add: "Add",
     addContext: "Add file or folder context",
@@ -3325,7 +3325,7 @@ const labels: Record<"en" | "zh", Record<LabelKey, string>> = {
     composerControls: "Composer controls",
     connect: "Connect",
     connection: "Connection",
-    connectionFailed: "Reasonix could not connect",
+    connectionFailed: "Patty Code could not connect",
     context: "Context",
     contextOff: "No editor context",
     continue: "Continue",
@@ -3345,7 +3345,7 @@ const labels: Record<"en" | "zh", Record<LabelKey, string>> = {
     file: "file",
     folder: "folder",
     fixSelection: "Fix selection",
-    idleTitle: "Reasonix is idle",
+    idleTitle: "Patty Code is idle",
     input: "Input",
     inputTokens: "Input",
     insert: "Insert",
@@ -3378,7 +3378,7 @@ const labels: Record<"en" | "zh", Record<LabelKey, string>> = {
     other: "other",
     outputTokens: "Output",
     pending: "pending",
-    placeholder: "Message Reasonix...",
+    placeholder: "Message Patty Code...",
     plan: "Plan",
     planDetail: "Read first, produce a plan, and wait before side effects.",
     composerHint: "/ commands · @ files/folders",
@@ -3386,11 +3386,11 @@ const labels: Record<"en" | "zh", Record<LabelKey, string>> = {
     pickModel: "Pick model",
     read: "read",
     question: "Question",
-    reasonixNotConnected: "Reasonix is not connected",
+    pattyNotConnected: "Patty Code is not connected",
     readyTitle: "Ready",
     reasoning: "Reasoning",
     reasoningEffort: "Reasoning effort",
-    reconnecting: "Reconnecting to Reasonix...",
+    reconnecting: "Reconnecting to Patty Code...",
     reject: "Reject",
     result: "Result",
     retry: "Retry",
@@ -3433,174 +3433,174 @@ const labels: Record<"en" | "zh", Record<LabelKey, string>> = {
     workDeliveryDetail: "Acceptance · Review · Verify",
     yolo: "Yolo",
     yoloDetail: "Approve tool calls except protected decisions.",
-    chinese: "Chinese",
-    cliPath: "Reasonix CLI",
+    korean: "Korean",
+    cliPath: "Patty Code CLI",
     interface: "Interface",
     openVsCodeSettings: "VS Code Settings",
     save: "Save",
   },
-  zh: {
-    add: "加入",
-    addContext: "添加文件或文件夹上下文",
-    attachFileOrImage: "添加文件或图片",
-    attachFileOrImageDetail: "从本机选择并附加到消息",
-    refFileOrFolder: "引用文件或文件夹",
-    refFileOrFolderDetail: "从当前工作区选择上下文",
-    refSession: "引用历史会话",
-    refSessionDetail: "将最近会话加入当前上下文",
-    useCommandOrSkill: "使用命令或 Skill",
-    useCommandOrSkillDetail: "浏览可用命令和技能",
-    removeAttachment: "移除附件",
-    always: "总是允许",
-    act: "执行",
-    apiConfiguration: "API 配置",
-    apiProvider: "API 提供方",
-    approval: "审批",
-    approvalReview: "审批：工具请求需确认",
-    ask: "询问",
-    askDetail: "受控工具调用前先询问确认。",
-    autoApproval: "自动",
-    autoApprovalDetail: "按权限规则自动处理，不再回退询问。",
-    autoLanguage: "自动",
-    autoStart: "自动启动",
-    backToChat: "返回",
-    behavior: "行为",
-    cache: "缓存",
-    cacheDiagnostics: "缓存诊断",
-    cancel: "取消",
-    cancelled: "已取消",
-    code: "代码",
-    completed: "已完成",
-    command: "命令",
-    clickToDisable: "点击关闭",
-    executionMethod: "执行方式",
-    executionNormal: "常规 · 边做边推进",
-    executionNormalDetail: "边分析边执行，适合明确的日常任务。",
-    executionPlan: "计划 · 确认后执行",
-    executionPlanDetail: "先只读产出计划，确认后再执行。",
-    executionGoal: "目标 · 持续推进",
-    executionGoalDetail: "输入目标后持续工作，直到完成或阻塞。",
-    composerControls: "输入控制",
-    connect: "连接",
-    connection: "连接",
-    connectionFailed: "Reasonix 连接失败",
-    context: "上下文",
-    contextOff: "不带编辑器上下文",
-    continue: "继续",
-    copied: "已复制",
-    copy: "复制",
-    cost: "费用",
-    disconnected: "已断开",
-    deleteSession: "删除会话",
-    done: "完成",
-    edit: "编辑",
-    earlierMessages: "显示更早的消息",
-    english: "英文",
-    execute: "执行",
-    explainFile: "解释文件",
-    effortUnavailable: "当前模型不支持调整推理强度",
-    failed: "失败",
-    file: "文件",
-    folder: "文件夹",
-    fixSelection: "修复选区",
-    idleTitle: "Reasonix 空闲中",
-    input: "输入",
-    inputTokens: "输入",
-    insert: "插入",
-    justNow: "刚刚",
-    language: "语言",
-    logs: "日志",
-    model: "模型",
-    modelSettings: "模型设置",
-    modelOverride: "模型覆盖",
-    modelPlaceholder: "默认模型",
-    mcpServers: "MCP 服务",
-    goal: "目标",
-    goalActiveDetail: "持续推进，直到完成、阻塞或停止。",
-    goalDetail: "围绕明确目标持续推进，直到完成或阻塞。",
-    nearby: "附近代码",
-    nearbyDetail: "优先使用选区，没有选区时使用光标附近代码。",
-    new: "新建",
-    normal: "常规",
-    normalDetail: "按常规智能体方式直接处理当前请求。",
-    noContext: "没有可用编辑器上下文",
-    noSuggestions: "没有匹配项",
-    noSessions: "暂无最近会话",
-    none: "无",
-    notice: "通知",
-    off: "关闭",
-    offDetail: "发送时不附加编辑器上下文。",
-    once: "本次",
-    openDiff: "打开 Diff",
-    openLocation: "打开位置",
-    other: "其他",
-    outputTokens: "输出",
-    pending: "等待中",
-    placeholder: "给 Reasonix 发消息...",
-    plan: "计划",
-    planDetail: "先只读分析并产出计划，确认前避免副作用。",
-    composerHint: "/ 命令 · @ 文件/文件夹",
-    pathPlaceholder: "从 PATH 查找",
-    pickModel: "选择模型",
-    read: "读取",
-    question: "问题",
-    reasonixNotConnected: "Reasonix 未连接",
-    readyTitle: "准备就绪",
-    reasoning: "推理",
-    reasoningEffort: "推理强度",
-    reconnecting: "正在重新连接 Reasonix...",
-    reject: "拒绝",
-    result: "结果",
-    retry: "重试",
-    runTests: "运行测试",
-    search: "搜索",
-    searchingFiles: "正在搜索文件...",
-    searchRepo: "搜索仓库",
-    selected: "已选择",
-    selection: "仅选区",
-    selectionDetail: "只使用当前编辑器选中的内容。",
-    send: "发送",
-    sendShortcut: "发送 (Enter)，换行 (Shift+Enter)",
-    selectBinary: "选择 CLI",
-    session: "会话",
-    sessions: "会话",
-    settings: "设置",
-    slashCommands: "斜杠命令",
-    start: "开始",
-    stop: "停止",
-    stopTurn: "停止当前回合",
-    thought: "思考",
-    thoughtSummary: "思考摘要",
-    tokens: "Tokens",
-    toolApprovals: "工具权限",
-    trace: "追踪日志",
-    usage: "用量",
-    user: "用户",
-    whatCanIDo: "我能帮你做什么？",
-    workspace: "工作区",
-    workspaceFiles: "工作区文件",
-    workMode: "工作模式",
-    workEconomy: "轻量 · 快速省用量",
-    workEconomyShort: "轻量",
-    workEconomyDetail: "少上下文 · 工具按需启用",
-    workBalanced: "均衡 · 日常通用",
-    workBalancedShort: "均衡",
-    workBalancedDetail: "完整工具 · 模型自主执行",
-    workDelivery: "交付 · 完整验证",
-    workDeliveryShort: "交付",
-    workDeliveryDetail: "强制验收 · 复查验证",
+  ko: {
+    add: "추가",
+    addContext: "파일 또는 폴더 컨텍스트 추가",
+    attachFileOrImage: "파일 또는 이미지 첨부",
+    attachFileOrImageDetail: "이 기기에서 골라 메시지에 첨부",
+    refFileOrFolder: "파일 또는 폴더 참조",
+    refFileOrFolderDetail: "현재 작업 영역에서 컨텍스트 선택",
+    refSession: "이전 세션 참조",
+    refSessionDetail: "최근 세션을 현재 컨텍스트에 추가",
+    useCommandOrSkill: "명령 또는 스킬 사용",
+    useCommandOrSkillDetail: "사용 가능한 명령과 스킬 탐색",
+    removeAttachment: "첨부 제거",
+    always: "항상 허용",
+    act: "실행",
+    apiConfiguration: "API 설정",
+    apiProvider: "API 제공자",
+    approval: "승인",
+    approvalReview: "승인: 도구 요청 확인",
+    ask: "확인",
+    askDetail: "승인이 필요한 도구 호출 전에 확인을 요청합니다.",
+    autoApproval: "자동",
+    autoApprovalDetail: "권한 규칙에 따라 자동으로 처리하며 추가 확인을 요청하지 않습니다.",
+    autoLanguage: "자동",
+    autoStart: "자동 시작",
+    backToChat: "뒤로",
+    behavior: "동작",
+    cache: "캐시",
+    cacheDiagnostics: "캐시 진단",
+    cancel: "취소",
+    cancelled: "취소됨",
+    code: "코드",
+    completed: "완료됨",
+    command: "명령",
+    clickToDisable: "클릭하여 끄기",
+    executionMethod: "실행 방식",
+    executionNormal: "표준 · 진행하며 실행",
+    executionNormalDetail: "분명한 일상 작업에 적합한 분석과 동시 진행 방식입니다.",
+    executionPlan: "계획 · 확인 후 실행",
+    executionPlanDetail: "먼저 읽기 전용으로 계획을 만들고 확인 후 실행합니다.",
+    executionGoal: "목표 · 끝까지 진행",
+    executionGoalDetail: "목표를 입력하면 완료되거나 막힐 때까지 계속 진행합니다.",
+    composerControls: "입력 컨트롤",
+    connect: "연결",
+    connection: "연결",
+    connectionFailed: "패티 코드 연결 실패",
+    context: "컨텍스트",
+    contextOff: "에디터 컨텍스트 없음",
+    continue: "계속",
+    copied: "복사됨",
+    copy: "복사",
+    cost: "비용",
+    disconnected: "연결 끊김",
+    deleteSession: "세션 삭제",
+    done: "완료",
+    edit: "편집",
+    earlierMessages: "이전 메시지 보기",
+    english: "영어",
+    execute: "실행",
+    explainFile: "파일 설명",
+    effortUnavailable: "현재 모델은 추론 강도 조절을 지원하지 않습니다",
+    failed: "실패",
+    file: "파일",
+    folder: "폴더",
+    fixSelection: "선택 영역 수정",
+    idleTitle: "패티 코드 대기 중",
+    input: "입력",
+    inputTokens: "입력",
+    insert: "삽입",
+    justNow: "방금",
+    language: "언어",
+    logs: "로그",
+    model: "모델",
+    modelSettings: "모델 설정",
+    modelOverride: "모델 덮어쓰기",
+    modelPlaceholder: "기본 모델",
+    mcpServers: "MCP 서버",
+    goal: "목표",
+    goalActiveDetail: "완료되거나 막히거나 중단될 때까지 계속 진행합니다.",
+    goalDetail: "명확한 목표를 향해 완료되거나 막힐 때까지 계속 진행합니다.",
+    nearby: "주변 코드",
+    nearbyDetail: "선택 영역을 우선 사용하고, 선택이 없으면 커서 주변 코드를 사용합니다.",
+    new: "새로 만들기",
+    normal: "일반",
+    normalDetail: "표준 에이전트 방식으로 현재 요청을 바로 처리합니다.",
+    noContext: "사용 가능한 에디터 컨텍스트가 없습니다",
+    noSuggestions: "일치하는 항목 없음",
+    noSessions: "최근 세션 없음",
+    none: "없음",
+    notice: "알림",
+    off: "끄기",
+    offDetail: "보낼 때 에디터 컨텍스트를 첨부하지 않습니다.",
+    once: "이번만",
+    openDiff: "Diff 열기",
+    openLocation: "위치 열기",
+    other: "기타",
+    outputTokens: "출력",
+    pending: "대기 중",
+    placeholder: "패티 코드에 메시지 보내기...",
+    plan: "계획",
+    planDetail: "먼저 읽기 전용으로 분석하고 계획을 만든 다음 확인 전까지 부작용을 피합니다.",
+    composerHint: "/ 명령 · @ 파일/폴더",
+    pathPlaceholder: "PATH에서 찾기",
+    pickModel: "모델 선택",
+    read: "읽기",
+    question: "질문",
+    pattyNotConnected: "패티 코드가 연결되지 않았습니다",
+    readyTitle: "준비됨",
+    reasoning: "추론",
+    reasoningEffort: "추론 강도",
+    reconnecting: "패티 코드에 다시 연결 중...",
+    reject: "거부",
+    result: "결과",
+    retry: "재시도",
+    runTests: "테스트 실행",
+    search: "검색",
+    searchingFiles: "파일 검색 중...",
+    searchRepo: "저장소 검색",
+    selected: "선택됨",
+    selection: "선택 영역만",
+    selectionDetail: "현재 에디터에서 선택된 내용만 사용합니다.",
+    send: "보내기",
+    sendShortcut: "보내기 (Enter), 줄바꿈 (Shift+Enter)",
+    selectBinary: "CLI 선택",
+    session: "세션",
+    sessions: "세션",
+    settings: "설정",
+    slashCommands: "슬래시 명령",
+    start: "시작",
+    stop: "중지",
+    stopTurn: "현재 턴 중지",
+    thought: "사고",
+    thoughtSummary: "사고 요약",
+    tokens: "토큰",
+    toolApprovals: "도구 권한",
+    trace: "추적 로그",
+    usage: "사용량",
+    user: "사용자",
+    whatCanIDo: "무엇을 도와드릴까요?",
+    workspace: "작업 영역",
+    workspaceFiles: "작업 영역 파일",
+    workMode: "작업 모드",
+    workEconomy: "경량 · 빠르게 절약",
+    workEconomyShort: "경량",
+    workEconomyDetail: "컨텍스트 최소 · 필요 시 도구 사용",
+    workBalanced: "균형 · 일상용",
+    workBalancedShort: "균형",
+    workBalancedDetail: "전체 도구 · 모델 자율 실행",
+    workDelivery: "전달 · 전체 검증",
+    workDeliveryShort: "전달",
+    workDeliveryDetail: "강제 검증 · 복수 검토",
     yolo: "Yolo",
-    yoloDetail: "自动批准工具调用，但受保护决策仍需确认。",
-    chinese: "简体中文",
-    cliPath: "Reasonix CLI",
-    interface: "界面",
-    openVsCodeSettings: "VS Code 设置",
-    save: "保存",
+    yoloDetail: "도구 호출을 자동 승인하되 보호된 결정은 확인을 요청합니다.",
+    korean: "한국어",
+    cliPath: "패티 코드 CLI",
+    interface: "인터페이스",
+    openVsCodeSettings: "VS Code 설정",
+    save: "저장",
   },
 };
 
 function label(key: LabelKey): string {
-  return labels[snapshot.locale.toLowerCase().startsWith("zh") ? "zh" : "en"][key];
+  return labels[snapshot.locale.toLowerCase().startsWith("ko") ? "ko" : "en"][key];
 }
 
 render(snapshot, true);

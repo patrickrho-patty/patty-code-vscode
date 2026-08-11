@@ -7,7 +7,7 @@ export type IncludeSelectionMode = "off" | "selectionOnly" | "nearby";
 const cursorWindowRadius = 40;
 
 export function configuredSelectionMode(): IncludeSelectionMode {
-  const value = vscode.workspace.getConfiguration("reasonix").get<string>("includeSelectionMode", "selectionOnly");
+  const value = vscode.workspace.getConfiguration("pattyCode").get<string>("includeSelectionMode", "selectionOnly");
   return value === "off" || value === "nearby" || value === "selectionOnly" ? value : "selectionOnly";
 }
 

@@ -6,7 +6,7 @@ import * as path from "node:path";
 import { suggestWorkspaceResources } from "../src/resourceSuggestions";
 
 test("suggestWorkspaceResources lists root files and folders for empty query", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-suggestions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-suggestions-"));
   await fs.mkdir(path.join(workspace, "src"));
   await fs.mkdir(path.join(workspace, "node_modules"));
   await fs.writeFile(path.join(workspace, "README.md"), "# demo\n");
@@ -17,7 +17,7 @@ test("suggestWorkspaceResources lists root files and folders for empty query", a
 });
 
 test("suggestWorkspaceResources ranks prefix matches across the workspace", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-suggestions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-suggestions-"));
   await fs.mkdir(path.join(workspace, "src"));
   await fs.mkdir(path.join(workspace, "test"));
   await fs.writeFile(path.join(workspace, "src", "webview.ts"), "");
@@ -29,7 +29,7 @@ test("suggestWorkspaceResources ranks prefix matches across the workspace", asyn
 });
 
 test("suggestWorkspaceResources lists children when query names a directory", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-suggestions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-suggestions-"));
   await fs.mkdir(path.join(workspace, "src"));
   await fs.mkdir(path.join(workspace, "src", "nested"));
   await fs.writeFile(path.join(workspace, "src", "webview.ts"), "");
@@ -40,7 +40,7 @@ test("suggestWorkspaceResources lists children when query names a directory", as
 });
 
 test("suggestWorkspaceResources skips common generated directories during broad scans", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-suggestions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-suggestions-"));
   await fs.mkdir(path.join(workspace, "node_modules", "pkg"), { recursive: true });
   await fs.writeFile(path.join(workspace, "node_modules", "pkg", "webview.ts"), "");
   await fs.mkdir(path.join(workspace, "src"));

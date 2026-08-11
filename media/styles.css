@@ -785,7 +785,7 @@ button:disabled {
   opacity: 0.42;
 }
 
-/* Desktop-aligned composer controls, backed by the existing Reasonix modes. */
+/* Desktop-aligned composer controls, backed by the existing Patty Code modes. */
 .composer {
   gap: 0;
 }
@@ -1044,7 +1044,7 @@ button:disabled {
   text-align: center;
 }
 
-.reasonix-mark {
+.patty-mark {
   display: grid;
   place-items: center;
   width: 72px;
@@ -1056,7 +1056,7 @@ button:disabled {
   font-weight: 800;
 }
 
-.reasonix-mark__logo {
+.patty-mark__logo {
   display: block;
   width: 40px;
   height: 45px;
@@ -1350,7 +1350,7 @@ pre {
   background: var(--rx-panel);
 }
 
-.reasonix-mark {
+.patty-mark {
   color: var(--vscode-foreground);
   background: transparent;
   border: 1px solid var(--rx-border);
@@ -1892,13 +1892,13 @@ textarea:focus {
     padding: 22px 8px;
   }
 
-  .reasonix-mark {
+  .patty-mark {
     width: 64px;
     height: 64px;
     border-radius: 18px;
   }
 
-  .reasonix-mark__logo {
+  .patty-mark__logo {
     width: 36px;
     height: 40px;
   }
@@ -2221,7 +2221,7 @@ textarea:focus {
   font-weight: 800;
 }
 
-.empty-brand .reasonix-mark {
+.empty-brand .patty-mark {
   width: 38px;
   height: 44px;
   background: transparent;
@@ -2230,7 +2230,7 @@ textarea:focus {
   box-shadow: none;
 }
 
-.empty-brand .reasonix-mark__logo {
+.empty-brand .patty-mark__logo {
   width: 34px;
   height: 39px;
 }
@@ -2547,12 +2547,12 @@ textarea:focus {
     font-size: 22px;
   }
 
-  .empty-brand .reasonix-mark {
+  .empty-brand .patty-mark {
     width: 30px;
     height: 36px;
   }
 
-  .empty-brand .reasonix-mark__logo {
+  .empty-brand .patty-mark__logo {
     width: 28px;
     height: 33px;
   }

@@ -49,7 +49,7 @@ export class WorkspaceFileBridge {
 
   private requireTrustedWorkspace(action: string): void {
     if (!vscode.workspace.isTrusted) {
-      throw new Error(`Workspace trust is required for Reasonix to ${action}`);
+      throw new Error(`Workspace trust is required for Patty Code to ${action}`);
     }
   }
 
@@ -95,7 +95,7 @@ export class WorkspaceFileBridge {
     const root = path.resolve(this.folder.uri.fsPath);
     const candidate = path.resolve(root, requestedPath);
     if (!isInside(candidate, root)) {
-      throw new Error("Reasonix file access is limited to the active workspace folder");
+      throw new Error("Patty Code file access is limited to the active workspace folder");
     }
     return candidate;
   }
@@ -103,7 +103,7 @@ export class WorkspaceFileBridge {
   private async assertRealPathInside(candidate: string): Promise<void> {
     const root = await fs.realpath(this.folder.uri.fsPath);
     if (!isInside(candidate, root)) {
-      throw new Error("Reasonix file access cannot follow a symlink outside the workspace");
+      throw new Error("Patty Code file access cannot follow a symlink outside the workspace");
     }
   }
 

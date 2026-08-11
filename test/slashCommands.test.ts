@@ -20,8 +20,8 @@ test("expandSlashCommand covers every built-in command alias", () => {
     ["/test failing suite", "test", /Run or identify the relevant tests/],
     ["/search provider", "search", /Search the repository/],
     ["/mcp tools", "mcp", /Inspect the connected MCP context/],
-    ["/skills design", "skills", /Use the appropriate Reasonix\/Codex skills/],
-    ["/skill design", "skill", /Use the appropriate Reasonix\/Codex skills/],
+    ["/skills design", "skills", /Use the appropriate Patty Code\/Codex skills/],
+    ["/skill design", "skill", /Use the appropriate Patty Code\/Codex skills/],
   ] as const;
 
   for (const [input, command, pattern] of cases) {

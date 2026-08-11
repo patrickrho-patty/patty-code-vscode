@@ -79,7 +79,7 @@ test("webview styles do not reintroduce the old dark-only palette", () => {
 });
 
 test("theme-sensitive controls share the derived surface tokens", () => {
-  assert.match(styles, /\.reasonix-mark\s*\{[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s);
+  assert.match(styles, /.patty-mark\s*\{[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s);
   assert.match(styles, /\.composer-mode-chip\s*\{[^}]*background:\s*var\(--rx-subtle\);/s);
   assert.match(styles, /\.suggestion-menu\s*\{[^}]*background:\s*var\(--rx-panel\);/s);
   assert.match(styles, /\.attachment-chip\s*\{[^}]*background:\s*var\(--rx-subtle\);/s);

@@ -12,14 +12,14 @@ export type SlashSuggestion = SlashCommandInfo & {
   detail: string;
 };
 
-const zhSlashDescriptions: Record<string, string> = {
-  help: "查看内置 Reasonix 斜杠命令。",
-  explain: "解释代码、文件或工作区区域。",
-  fix: "修复指定问题或代码区域。",
-  tests: "运行、定位或诊断相关测试。",
-  search: "搜索仓库并总结关键文件。",
-  mcp: "检查 MCP 上下文并使用相关工具。",
-  skills: "使用合适的 Reasonix/Codex 技能。",
+const koSlashDescriptions: Record<string, string> = {
+  help: "내장된 Patty Code 슬래시 명령을 확인합니다.",
+  explain: "코드, 파일 또는 작업 영역의 일부를 설명합니다.",
+  fix: "지정한 문제 또는 코드 영역을 수정합니다.",
+  tests: "관련 테스트를 실행하고 위치를 찾거나 진단합니다.",
+  search: "저장소를 검색하고 핵심 파일을 요약합니다.",
+  mcp: "MCP 컨텍스트를 확인하고 관련 도구를 사용합니다.",
+  skills: "상황에 맞는 Patty Code/Codex 스킬을 사용합니다.",
 };
 
 export function getComposerTrigger(value: string, selectionStart: number, selectionEnd = selectionStart): ComposerTrigger | undefined {
@@ -66,7 +66,7 @@ export function replaceComposerTrigger(value: string, trigger: ComposerTrigger, 
 
 export function slashSuggestions(query: string, locale: string, limit = 8): SlashSuggestion[] {
   const normalized = query.replace(/^\//, "").toLowerCase();
-  const localized = locale.toLowerCase().startsWith("zh") ? zhSlashDescriptions : undefined;
+  const localized = locale.toLowerCase().startsWith("ko") ? koSlashDescriptions : undefined;
   return listSlashCommands()
     .map((command, index) => {
       const detail = localized?.[command.name] ?? command.description;

@@ -6,10 +6,10 @@ import { downloadAndUnzipVSCode, runTests } from "@vscode/test-electron";
 async function main(): Promise<void> {
   const extensionDevelopmentPath = path.resolve(__dirname, "../../..");
   const extensionTestsPath = path.resolve(__dirname, "suite/index.js");
-  const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), "reasonix-vscode-workspace-"));
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "reasonix-vscode-user-"));
+  const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), "patty-code-vscode-workspace-"));
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "patty-code-vscode-user-"));
   const fakeAcpScript = path.resolve(extensionDevelopmentPath, "test/vscode/fake-acp.cjs");
-  const fakeAcp = path.join(workspacePath, process.platform === "win32" ? "reasonix.cmd" : "reasonix");
+  const fakeAcp = path.join(workspacePath, process.platform === "win32" ? "pattyCode.cmd" : "patcode");
   const fakeLog = path.join(workspacePath, "fake-acp.log");
   const vscodeExecutablePath = process.env.VSCODE_EXECUTABLE_PATH;
   const binaryMode = process.argv.includes("--path") ? "path" : "configured";
@@ -25,11 +25,11 @@ async function main(): Promise<void> {
     extensionTestsPath,
     launchArgs: [workspacePath, "--user-data-dir", userDataDir, "--disable-extensions", "--disable-workspace-trust"],
     extensionTestsEnv: {
-      REASONIX_FAKE_ACP: fakeAcp,
-      REASONIX_FAKE_LOG: fakeLog,
-      REASONIX_TEST_WORKSPACE: workspacePath,
-      REASONIX_TEST_COMMANDS: "1",
-      REASONIX_TEST_BINARY_MODE: binaryMode,
+      PATTY_FAKE_ACP: fakeAcp,
+      PATTY_FAKE_LOG: fakeLog,
+      PATTY_TEST_WORKSPACE: workspacePath,
+      PATTY_TEST_COMMANDS: "1",
+      PATTY_TEST_BINARY_MODE: binaryMode,
       PATH: `${workspacePath}${path.delimiter}${process.env.PATH ?? ""}`,
     },
   });

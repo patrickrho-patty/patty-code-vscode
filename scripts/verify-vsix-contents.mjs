@@ -2,7 +2,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 
-const vsixPath = process.argv[2] || "dist/reasonix-vscode.vsix";
+const vsixPath = process.argv[2] || "dist/patty-code-vscode.vsix";
 
 if (!existsSync(vsixPath)) {
   console.error(`VSIX not found: ${vsixPath}`);
@@ -23,7 +23,7 @@ const fileSet = new Set(files);
 const required = [
   "extension/package.json",
   "extension/readme.md",
-  "extension/README.zh-CN.md",
+  "extension/README.en.md",
   "extension/changelog.md",
   "extension/LICENSE.txt",
   "extension/dist/extension.js",
@@ -42,7 +42,7 @@ const forbidden = [
   /^extension\/\.github\//,
   /^extension\/\.codegraph\//,
   /^extension\/node_modules\//,
-  /^extension\/reasonix\.toml$/,
+  /^extension\/patty\.toml$/,
 ];
 
 const missing = required.filter((file) => !fileSet.has(file));

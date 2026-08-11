@@ -260,7 +260,7 @@ export interface UsageData {
   };
 }
 
-export interface ReasonixStatusUsageValue {
+export interface PattyStatusUsageValue {
   promptTokens: number;
   completionTokens: number;
   reasoningTokens: number;
@@ -273,22 +273,22 @@ export interface ReasonixStatusUsageValue {
   usageSource: string;
 }
 
-export interface ReasonixSessionStatus {
+export interface PattySessionStatus {
   schemaVersion: number;
   sequence: number;
   sessionId: string;
   usage: {
-    turn: ReasonixStatusUsageValue;
-    cumulative: ReasonixStatusUsageValue;
+    turn: PattyStatusUsageValue;
+    cumulative: PattyStatusUsageValue;
   };
 }
 
-export interface ReasonixStatusUpdateParams {
+export interface PattyStatusUpdateParams {
   schemaVersion: number;
   sequence: number;
   sessionId: string;
   event: string;
-  status: ReasonixSessionStatus;
+  status: PattySessionStatus;
 }
 
 export interface ChangePreview {

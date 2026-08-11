@@ -6,7 +6,7 @@ import * as path from "node:path";
 import { buildPromptBlocks, resolveFileMentions } from "../src/resourceMentions";
 
 test("resolveFileMentions reads workspace-relative @ file references", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-mentions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-mentions-"));
   await fs.mkdir(path.join(workspace, "src"));
   await fs.writeFile(path.join(workspace, "src", "sample.ts"), "export const answer = 42;\n");
 
@@ -18,7 +18,7 @@ test("resolveFileMentions reads workspace-relative @ file references", async () 
 });
 
 test("resolveFileMentions appends bounded directory listings", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-mentions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-mentions-"));
   await fs.mkdir(path.join(workspace, "src"));
   await fs.mkdir(path.join(workspace, "src", "nested"));
   await fs.writeFile(path.join(workspace, "src", "sample.ts"), "const answer = 42;\n");
@@ -34,7 +34,7 @@ test("resolveFileMentions appends bounded directory listings", async () => {
 });
 
 test("buildPromptBlocks emits ACP resource blocks instead of prompt XML", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-mentions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-mentions-"));
   await fs.writeFile(path.join(workspace, "sample.ts"), "const answer = 42;\n");
 
   const result = await buildPromptBlocks("explain @sample.ts", workspace);
@@ -43,7 +43,7 @@ test("buildPromptBlocks emits ACP resource blocks instead of prompt XML", async 
   assert.equal(result.blocks[1]?.type, "resource");
   assert.match(result.blocks[1]?.type === "resource" ? result.blocks[1].resource.uri : "", /^file:/);
   assert.match(result.blocks[1]?.type === "resource" ? result.blocks[1].resource.text ?? "" : "", /File: sample\.ts[\s\S]*answer = 42/);
-  assert.doesNotMatch(JSON.stringify(result.blocks), /reasonix_file_mentions/);
+  assert.doesNotMatch(JSON.stringify(result.blocks), /patty_file_mentions/);
 });
 
 test("resolveFileMentions does not follow symlinks outside the workspace", async (t) => {
@@ -51,8 +51,8 @@ test("resolveFileMentions does not follow symlinks outside the workspace", async
     t.skip("symlink creation requires extra privileges on Windows");
     return;
   }
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-mentions-"));
-  const outside = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-outside-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-mentions-"));
+  const outside = await fs.mkdtemp(path.join(os.tmpdir(), "patty-outside-"));
   await fs.writeFile(path.join(outside, "secret.txt"), "secret\n");
   await fs.symlink(path.join(outside, "secret.txt"), path.join(workspace, "escape.txt"));
 
@@ -60,7 +60,7 @@ test("resolveFileMentions does not follow symlinks outside the workspace", async
 });
 
 test("resolveFileMentions ignores non-path mentions and traversal", async () => {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "reasonix-mentions-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "patty-mentions-"));
   await fs.writeFile(path.join(workspace, "sample.ts"), "const answer = 42;\n");
 
   const mentions = await resolveFileMentions("talk to @alice and ignore @../sample.ts", workspace);

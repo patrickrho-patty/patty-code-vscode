@@ -94,8 +94,8 @@ jobs:
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reasonix-vscode-vsix
-          path: dist/reasonix-vscode.vsix
+          name: patty-code-vscode-vsix
+          path: dist/patty-vscode.vsix
           if-no-files-found: error
 
   publish-marketplace:
@@ -123,7 +123,7 @@ jobs:
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
         with:
-          name: reasonix-vscode-vsix
+          name: patty-code-vscode-vsix
           path: dist
 
       - name: Check Marketplace token
@@ -143,7 +143,7 @@ jobs:
         if: steps.marketplace-token.outputs.present == 'true'
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: npx vsce publish --packagePath dist/reasonix-vscode.vsix
+        run: npx vsce publish --packagePath dist/patty-vscode.vsix
 
   publish-open-vsx:
     name: Publish to Open VSX
@@ -170,7 +170,7 @@ jobs:
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
         with:
-          name: reasonix-vscode-vsix
+          name: patty-code-vscode-vsix
           path: dist
 
       - name: Check Open VSX token
@@ -197,7 +197,7 @@ jobs:
         if: steps.open-vsx-token.outputs.present == 'true'
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: npx --yes ovsx publish dist/reasonix-vscode.vsix --pat "$OVSX_PAT"
+        run: npx --yes ovsx publish dist/patty-vscode.vsix --pat "$OVSX_PAT"
 
   github-release:
     name: GitHub Release
@@ -209,13 +209,13 @@ jobs:
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
         with:
-          name: reasonix-vscode-vsix
+          name: patty-code-vscode-vsix
           path: dist
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.package.outputs.tag_name }}
-          name: Reasonix ${{ needs.package.outputs.tag_name }}
-          files: dist/reasonix-vscode.vsix
+          name: Patty Code ${{ needs.package.outputs.tag_name }}
+          files: dist/patty-vscode.vsix
           generate_release_notes: true

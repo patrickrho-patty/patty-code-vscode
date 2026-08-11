@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const fs = require("node:fs");
 
-const logPath = process.env.REASONIX_FAKE_LOG;
+const logPath = process.env.PATTY_FAKE_LOG;
 let buffer = "";
 let sessionId = "fake-session";
 let nextRequestId = 1000;
@@ -146,7 +146,7 @@ function statusUsage(promptTokens, completionTokens, reasoningTokens, cacheHitTo
   };
 }
 
-function reasonixStatus(sequence = statusSequence, turn = currentTurnUsage, cumulative = cumulativeUsage) {
+function pattyStatus(sequence = statusSequence, turn = currentTurnUsage, cumulative = cumulativeUsage) {
   return {
     schemaVersion: 1,
     sequence,
@@ -177,15 +177,15 @@ function handle(message) {
     case "initialize":
       result(message.id, {
         protocolVersion: 1,
-        agentInfo: { name: "fake-reasonix", version: "main-v2" },
+        agentInfo: { name: "fake-patty", version: "main-v2" },
         agentCapabilities: {
           loadSession: true,
           sessionCapabilities: { list: {}, resume: {}, close: {}, delete: {} },
           promptCapabilities: { image: false, audio: false, embeddedContext: true },
           mcpCapabilities: { http: true, sse: false },
           _meta: {
-            "_reasonix.io/session/status": { schemaVersion: 1 },
-            "_reasonix.io/session/status_update": { schemaVersion: 1 },
+            "_patty.io/session/status": { schemaVersion: 1 },
+            "_patty.io/session/status_update": { schemaVersion: 1 },
           },
         },
         authMethods: [],
@@ -212,8 +212,8 @@ function handle(message) {
     case "session/list":
       result(message.id, { sessions: [...sessions.values()] });
       return;
-    case "_reasonix.io/session/status":
-      result(message.id, reasonixStatus());
+    case "_patty.io/session/status":
+      result(message.id, pattyStatus());
       return;
     case "session/close":
       result(message.id, {});
@@ -268,20 +268,20 @@ function handlePrompt(message) {
     statusSequence = 2;
     currentTurnUsage = statusUsage(120, 30, 12, 80, 40, 0.0042, "USD");
     cumulativeUsage = statusUsage(240, 60, 20, 180, 60, 0.0084, "USD");
-    notify("_reasonix.io/session/status_update", {
+    notify("_patty.io/session/status_update", {
       schemaVersion: 1,
       sequence: statusSequence,
       sessionId,
       event: "usage",
-      status: reasonixStatus(),
+      status: pattyStatus(),
     });
     const staleTurn = statusUsage(999, 999, 999, 1, 1, 99, "USD");
-    notify("_reasonix.io/session/status_update", {
+    notify("_patty.io/session/status_update", {
       schemaVersion: 1,
       sequence: 1,
       sessionId,
       event: "usage",
-      status: reasonixStatus(1, staleTurn, staleTurn),
+      status: pattyStatus(1, staleTurn, staleTurn),
     });
     result(message.id, { stopReason: "end_turn" });
     return;
@@ -326,7 +326,7 @@ function handlePrompt(message) {
     notify("session/update", { sessionId, update: { sessionUpdate: "tool_call", toolCallId, title: "write_file", kind: "edit", status: "pending", rawInput: { path: "sample.ts" }, locations: [{ path: message.params?.cwd || "sample.ts", line: 1 }] } });
     if (currentApprovalMode !== "ask") {
       log({ method: "permission/server-auto", mode: currentApprovalMode });
-      notify("session/update", { sessionId, update: { sessionUpdate: "tool_call_update", toolCallId, status: "completed", content: [{ type: "content", content: { type: "text", text: "permission handled by Reasonix" } }] } });
+      notify("session/update", { sessionId, update: { sessionUpdate: "tool_call_update", toolCallId, status: "completed", content: [{ type: "content", content: { type: "text", text: "permission handled by Patty Code" } }] } });
       result(message.id, { stopReason: "end_turn" });
       return;
     }
@@ -367,7 +367,7 @@ function handlePrompt(message) {
     return;
   }
   if (text.includes("terminal_probe")) {
-    request("terminal/create", { sessionId, command: "echo reasonix-terminal", outputByteLimit: 8192 }, { type: "terminal-create", promptRequestId: message.id });
+    request("terminal/create", { sessionId, command: "echo patty-terminal", outputByteLimit: 8192 }, { type: "terminal-create", promptRequestId: message.id });
     return;
   }
   if (text.includes("plan_probe")) {

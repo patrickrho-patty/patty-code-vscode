@@ -14,7 +14,7 @@ import type {
 type TerminalRecord = {
   child: ChildProcessWithoutNullStreams;
   terminal: vscode.Terminal;
-  pty: ReasonixPseudoterminal;
+  pty: PattyPseudoterminal;
   chunks: Buffer[];
   bytes: number;
   byteLimit: number;
@@ -35,7 +35,7 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
 
   async create(params: TerminalCreateParams): Promise<TerminalCreateResult> {
     if (!vscode.workspace.isTrusted) {
-      throw new Error("Workspace trust is required for Reasonix terminal commands");
+      throw new Error("Workspace trust is required for Patty Code terminal commands");
     }
     const cwd = await this.resolveCwd(params.cwd);
     const args = params.args ?? [];
@@ -45,13 +45,13 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
       shell: args.length === 0,
       stdio: ["pipe", "pipe", "pipe"],
     });
-    const terminalId = `reasonix-${Date.now().toString(36)}-${this.nextId++}`;
-    const pty = new ReasonixPseudoterminal((data) => child.stdin.write(data), () => {
+    const terminalId = `patty-${Date.now().toString(36)}-${this.nextId++}`;
+    const pty = new PattyPseudoterminal((data) => child.stdin.write(data), () => {
       if (!child.killed) {
         child.kill();
       }
     });
-    const terminal = vscode.window.createTerminal({ name: `Reasonix: ${commandLabel(params.command)}`, pty });
+    const terminal = vscode.window.createTerminal({ name: `Patty Code: ${commandLabel(params.command)}`, pty });
     let resolveExit!: (status: TerminalWaitResult) => void;
     const exited = new Promise<TerminalWaitResult>((resolve) => { resolveExit = resolve; });
     const record: TerminalRecord = {
@@ -127,7 +127,7 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
   private requireTerminal(id: string): TerminalRecord {
     const record = this.terminals.get(id);
     if (!record) {
-      throw new Error(`Unknown Reasonix terminal: ${id}`);
+      throw new Error(`Unknown Patty Code terminal: ${id}`);
     }
     return record;
   }
@@ -137,18 +137,18 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
     const cwd = path.resolve(root, requested || ".");
     const relative = path.relative(root, cwd);
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
-      throw new Error("Reasonix terminal cwd is limited to the active workspace folder");
+      throw new Error("Patty Code terminal cwd is limited to the active workspace folder");
     }
     const [realRoot, realCwd] = await Promise.all([fs.realpath(root), fs.realpath(cwd)]);
     const realRelative = path.relative(realRoot, realCwd);
     if (realRelative.startsWith("..") || path.isAbsolute(realRelative)) {
-      throw new Error("Reasonix terminal cwd cannot follow a symlink outside the workspace");
+      throw new Error("Patty Code terminal cwd cannot follow a symlink outside the workspace");
     }
     return realCwd;
   }
 }
 
-class ReasonixPseudoterminal implements vscode.Pseudoterminal {
+class PattyPseudoterminal implements vscode.Pseudoterminal {
   private readonly writeEmitter = new vscode.EventEmitter<string>();
   private readonly closeEmitter = new vscode.EventEmitter<number>();
   readonly onDidWrite = this.writeEmitter.event;

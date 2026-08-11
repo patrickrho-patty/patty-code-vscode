@@ -27,7 +27,7 @@ const builds = [
   },
   {
     ...common,
-    entryPoints: ["test/acpProtocol.test.ts", "test/attachments.test.ts", "test/jsonRpc.test.ts", "test/chatState.test.ts", "test/webviewProtocol.test.ts", "test/sanitize.test.ts", "test/keyboard.test.ts", "test/resourceMentions.test.ts", "test/resourceSuggestions.test.ts", "test/slashCommands.test.ts", "test/composerSuggestions.test.ts", "test/snapshotSync.test.ts", "test/reasonixLauncher.test.ts", "test/themeStyles.test.ts", "test/markdown.test.ts"],
+    entryPoints: ["test/acpProtocol.test.ts", "test/attachments.test.ts", "test/jsonRpc.test.ts", "test/chatState.test.ts", "test/webviewProtocol.test.ts", "test/sanitize.test.ts", "test/keyboard.test.ts", "test/resourceMentions.test.ts", "test/resourceSuggestions.test.ts", "test/slashCommands.test.ts", "test/composerSuggestions.test.ts", "test/snapshotSync.test.ts", "test/pattyLauncher.test.ts", "test/themeStyles.test.ts", "test/markdown.test.ts"],
     outdir: "dist/test",
     platform: "node",
     format: "cjs",
@@ -46,7 +46,7 @@ const builds = [
 if (watch) {
   const contexts = await Promise.all(builds.map((opts) => esbuild.context(opts)));
   await Promise.all(contexts.map((ctx) => ctx.watch()));
-  console.log("watching Reasonix VS Code extension sources...");
+  console.log("watching Patty Code for VS Code sources...");
 } else {
   await Promise.all(builds.map((opts) => esbuild.build(opts)));
 }

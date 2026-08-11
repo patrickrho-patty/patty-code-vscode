@@ -97,9 +97,9 @@ test("parseWebviewMessage accepts product UI commands", () => {
   assert.deepEqual(parseWebviewMessage({ command: "pickEffort" }), {
     command: "pickEffort",
   });
-  assert.deepEqual(parseWebviewMessage({ command: "setModel", value: "deepseek/deepseek-chat" }), {
+  assert.deepEqual(parseWebviewMessage({ command: "setModel", value: "test-provider/test-model" }), {
     command: "setModel",
-    value: "deepseek/deepseek-chat",
+    value: "test-provider/test-model",
   });
   assert.deepEqual(parseWebviewMessage({ command: "setEffort", optionId: "thought_level", value: "high" }), {
     command: "setEffort",
@@ -128,10 +128,10 @@ test("parseWebviewMessage accepts product UI commands", () => {
     requestId: 2,
     query: "src/we",
   });
-  assert.deepEqual(parseWebviewMessage({ command: "updateSetting", key: "uiLanguage", value: "zh-CN" }), {
+  assert.deepEqual(parseWebviewMessage({ command: "updateSetting", key: "uiLanguage", value: "ko-KR" }), {
     command: "updateSetting",
     key: "uiLanguage",
-    value: "zh-CN",
+    value: "ko-KR",
   });
   assert.deepEqual(parseWebviewMessage({ command: "updateSetting", key: "trace", value: true }), {
     command: "updateSetting",

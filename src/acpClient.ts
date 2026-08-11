@@ -1,19 +1,19 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import type { Writable } from "node:stream";
 import { JsonRpcPeer } from "./jsonRpc";
-import { spawnReasonix } from "./reasonixLauncher";
+import { spawnPatty } from "./pattyLauncher";
 import {
   parseFSReadTextFileParams,
   parseFSWriteTextFileParams,
   parsePermissionRequestParams,
-  parseReasonixSessionStatus,
-  parseReasonixStatusUpdateParams,
+  parsePattySessionStatus,
+  parsePattyStatusUpdateParams,
   parseSessionUpdateParams,
   parseTerminalCreateParams,
   parseTerminalIDParams,
-  REASONIX_STATUS_METHOD,
-  REASONIX_STATUS_UPDATE_METHOD,
-  supportsReasonixStatusMethod,
+  PATTY_STATUS_METHOD,
+  PATTY_STATUS_UPDATE_METHOD,
+  supportsPattyStatusMethod,
   type ProtocolParseResult,
 } from "./acpProtocol";
 import { redactLocalPaths } from "./sanitize";
@@ -29,7 +29,7 @@ import type {
   ModelListResult,
   PermissionRequestParams,
   PermissionRequestResult,
-  ReasonixSessionStatus,
+  PattySessionStatus,
   SessionConfigOption,
   SessionInfo,
   SessionListResult,
@@ -81,7 +81,7 @@ export type AcpClientOptions = {
   onDisconnect: (reason: string) => void;
   onSessionId: (sessionId: string) => void;
   onSessionState?: (state: SessionStateResult) => void;
-  onReasonixStatus?: (status: ReasonixSessionStatus, event?: string) => void;
+  onPattyStatus?: (status: PattySessionStatus, event?: string) => void;
 };
 
 export class AcpClient {
@@ -128,7 +128,7 @@ export class AcpClient {
       args.push("--model", this.options.model.trim());
     }
     this.appendLine(`Starting ${this.options.binaryPath} ${args.join(" ")}`);
-    this.child = spawnReasonix(this.options.binaryPath, args, this.options.cwd);
+    this.child = spawnPatty(this.options.binaryPath, args, this.options.cwd);
 
     this.peer = new JsonRpcPeer(
       this.child.stdin as Writable,
@@ -147,7 +147,7 @@ export class AcpClient {
     });
     this.child.on("close", (code, signal) => {
       const reason = signal ? `signal ${signal}` : `exit ${code ?? "unknown"}`;
-      this.peer?.close(new Error(`Reasonix ACP closed: ${reason}`));
+      this.peer?.close(new Error(`Patty Code ACP closed: ${reason}`));
       this.peer = undefined;
       this.child = undefined;
       this.runningPrompt = false;
@@ -156,7 +156,7 @@ export class AcpClient {
 
     this.initialized = await this.peer.sendRequest<InitializeResult>("initialize", {
       protocolVersion: 1,
-      clientInfo: { name: "reasonix-vscode", title: "Reasonix VS Code", version: "0.2.0" },
+      clientInfo: { name: "patty-code-vscode", title: "Patty Code for VS Code", version: "0.3.2" },
       clientCapabilities: {
         fs: {
           readTextFile: this.options.fileSystem !== undefined,
@@ -173,10 +173,10 @@ export class AcpClient {
       try {
         const resumed = await this.openExistingSession(previous);
         this.applySessionState(resumed);
-        await this.syncReasonixStatus();
+        await this.syncPattyStatus();
         return { sessionId: previous, isNewSession: false };
       } catch (err) {
-        this.appendLine(`Could not restore Reasonix session ${previous}: ${errorMessage(err)}`);
+        this.appendLine(`Could not restore Patty Code session ${previous}: ${errorMessage(err)}`);
         this.sessionId = undefined;
       }
     }
@@ -186,12 +186,12 @@ export class AcpClient {
       mcpServers: [],
     });
     if (!created || typeof created.sessionId !== "string" || created.sessionId.trim() === "") {
-      throw new Error("Reasonix returned an invalid session/new result");
+      throw new Error("Patty Code returned an invalid session/new result");
     }
     this.sessionId = created.sessionId;
     this.applySessionState(created);
     this.options.onSessionId(created.sessionId);
-    await this.syncReasonixStatus();
+    await this.syncPattyStatus();
     return { sessionId: created.sessionId, isNewSession: true };
   }
 
@@ -275,7 +275,7 @@ export class AcpClient {
   }
 
   dispose(): void {
-    this.peer?.close(new Error("Reasonix ACP disposed"));
+    this.peer?.close(new Error("Patty Code ACP disposed"));
     this.peer = undefined;
     if (this.child && !this.child.killed) {
       this.child.kill();
@@ -297,17 +297,17 @@ export class AcpClient {
   }
 
   private handleNotification(method: string, params: unknown): void {
-    if (method === REASONIX_STATUS_UPDATE_METHOD) {
-      if (!supportsReasonixStatusMethod(this.capabilities, method)) {
+    if (method === PATTY_STATUS_UPDATE_METHOD) {
+      if (!supportsPattyStatusMethod(this.capabilities, method)) {
         this.appendLine(`Ignoring unadvertised ACP notification: ${method}`);
         return;
       }
-      const parsedStatus = parseReasonixStatusUpdateParams(params);
+      const parsedStatus = parsePattyStatusUpdateParams(params);
       if (!parsedStatus.ok) {
-        this.appendLine(`Ignoring invalid Reasonix status update: ${parsedStatus.error}`);
+        this.appendLine(`Ignoring invalid Patty Code status update: ${parsedStatus.error}`);
         return;
       }
-      this.acceptReasonixStatus(parsedStatus.value.status, parsedStatus.value.event);
+      this.acceptPattyStatus(parsedStatus.value.status, parsedStatus.value.event);
       return;
     }
     if (method !== "session/update") {
@@ -328,26 +328,26 @@ export class AcpClient {
     this.options.onUpdate(parsed.value);
   }
 
-  private async syncReasonixStatus(): Promise<void> {
-    if (!supportsReasonixStatusMethod(this.capabilities, REASONIX_STATUS_METHOD)) {
+  private async syncPattyStatus(): Promise<void> {
+    if (!supportsPattyStatusMethod(this.capabilities, PATTY_STATUS_METHOD)) {
       return;
     }
     try {
-      const raw = await this.requirePeer().sendRequest<unknown>(REASONIX_STATUS_METHOD, { sessionId: this.requireSession() });
-      const parsed = parseReasonixSessionStatus(raw);
+      const raw = await this.requirePeer().sendRequest<unknown>(PATTY_STATUS_METHOD, { sessionId: this.requireSession() });
+      const parsed = parsePattySessionStatus(raw);
       if (!parsed.ok) {
-        this.appendLine(`Ignoring invalid Reasonix session status: ${parsed.error}`);
+        this.appendLine(`Ignoring invalid Patty Code session status: ${parsed.error}`);
         return;
       }
-      this.acceptReasonixStatus(parsed.value);
+      this.acceptPattyStatus(parsed.value);
     } catch (err) {
-      this.appendLine(`Could not read Reasonix session status: ${errorMessage(err)}`);
+      this.appendLine(`Could not read Patty Code session status: ${errorMessage(err)}`);
     }
   }
 
-  private acceptReasonixStatus(status: ReasonixSessionStatus, event?: string): void {
+  private acceptPattyStatus(status: PattySessionStatus, event?: string): void {
     if (status.sessionId !== this.sessionId) {
-      this.appendLine(`Ignoring Reasonix status for inactive session ${status.sessionId}`);
+      this.appendLine(`Ignoring Patty Code status for inactive session ${status.sessionId}`);
       return;
     }
     const previous = this.statusSequences.get(status.sessionId);
@@ -355,7 +355,7 @@ export class AcpClient {
       return;
     }
     this.statusSequences.set(status.sessionId, status.sequence);
-    this.options.onReasonixStatus?.(status, event);
+    this.options.onPattyStatus?.(status, event);
   }
 
   private async handleRequest(method: string, params: unknown): Promise<unknown> {
@@ -430,28 +430,28 @@ export class AcpClient {
 
   private requireFileSystem(): AcpFileSystem {
     if (!this.options.fileSystem) {
-      throw new Error("Reasonix requested filesystem access that the client did not advertise");
+      throw new Error("Patty Code requested filesystem access that the client did not advertise");
     }
     return this.options.fileSystem;
   }
 
   private requireTerminal(): AcpTerminal {
     if (!this.options.terminal) {
-      throw new Error("Reasonix requested a terminal that the client did not advertise");
+      throw new Error("Patty Code requested a terminal that the client did not advertise");
     }
     return this.options.terminal;
   }
 
   private requirePeer(): JsonRpcPeer {
     if (!this.peer) {
-      throw new Error("Reasonix ACP is not connected");
+      throw new Error("Patty Code ACP is not connected");
     }
     return this.peer;
   }
 
   private requireSession(): string {
     if (!this.sessionId) {
-      throw new Error("Reasonix session is not ready");
+      throw new Error("Patty Code session is not ready");
     }
     return this.sessionId;
   }

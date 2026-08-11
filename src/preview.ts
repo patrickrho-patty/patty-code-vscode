@@ -20,7 +20,7 @@ export class DiffPreviewProvider implements vscode.TextDocumentContentProvider {
   register(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
       this.emitter,
-      vscode.workspace.registerTextDocumentContentProvider("reasonix-preview", this),
+      vscode.workspace.registerTextDocumentContentProvider("patty-preview", this),
     );
   }
 
@@ -62,7 +62,7 @@ export class DiffPreviewProvider implements vscode.TextDocumentContentProvider {
   }
 
   private async openPreview(target: vscode.Uri, oldText: string, nextText: string, workspaceFolder: vscode.WorkspaceFolder | undefined): Promise<void> {
-    const title = `Reasonix Preview: ${workspaceFolder ? path.relative(workspaceFolder.uri.fsPath, target.fsPath) : target.fsPath}`;
+    const title = `Patty Code Preview: ${workspaceFolder ? path.relative(workspaceFolder.uri.fsPath, target.fsPath) : target.fsPath}`;
     const oldUri = oldText === "" ? this.putVirtual("old", target, oldText) : target;
     const newUri = this.putVirtual("new", target, nextText);
     await vscode.commands.executeCommand("vscode.diff", oldUri, newUri, title, { preview: true });
@@ -71,7 +71,7 @@ export class DiffPreviewProvider implements vscode.TextDocumentContentProvider {
   private putVirtual(kind: "old" | "new", target: vscode.Uri, content: string): vscode.Uri {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const uri = vscode.Uri.from({
-      scheme: "reasonix-preview",
+      scheme: "patty-preview",
       authority: kind,
       path: `/${id}/${path.basename(target.fsPath)}`,
     });

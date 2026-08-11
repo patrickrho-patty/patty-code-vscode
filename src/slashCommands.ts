@@ -18,9 +18,9 @@ type SlashCommand = {
 const commands: SlashCommand[] = [
   {
     names: ["help", "?"],
-    description: "Show the built-in Reasonix slash commands.",
+    description: "Show the built-in Patty Code slash commands.",
     build: () => [
-      "List the built-in Reasonix VS Code slash commands and when to use them.",
+      "List the built-in Patty Code VS Code slash commands and when to use them.",
       "",
       "Commands: /explain, /fix, /tests, /search, /mcp, /skills.",
     ].join("\n"),
@@ -67,9 +67,9 @@ const commands: SlashCommand[] = [
   },
   {
     names: ["skills", "skill"],
-    description: "Use the appropriate available Reasonix/Codex skills.",
+    description: "Use the appropriate available Patty Code/Codex skills.",
     build: (args) => withRequest(
-      "Use the appropriate Reasonix/Codex skills for this request if they are available. State which skill is relevant and what it contributes.",
+      "Use the appropriate Patty Code/Codex skills for this request if they are available. State which skill is relevant and what it contributes.",
       args,
     ),
   },

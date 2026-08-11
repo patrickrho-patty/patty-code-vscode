@@ -3,14 +3,14 @@ import assert from "node:assert/strict";
 import {
   parseFSReadTextFileParams,
   parsePermissionRequestParams,
-  parseReasonixSessionStatus,
-  parseReasonixStatusUpdateParams,
+  parsePattySessionStatus,
+  parsePattyStatusUpdateParams,
   parseSessionUpdateParams,
   parseTerminalCreateParams,
-  REASONIX_STATUS_METHOD,
-  REASONIX_STATUS_UPDATE_METHOD,
-  supportsReasonixStatusMethod,
-  usageDataFromReasonixStatus,
+  PATTY_STATUS_METHOD,
+  PATTY_STATUS_UPDATE_METHOD,
+  supportsPattyStatusMethod,
+  usageDataFromPattyStatus,
 } from "../src/acpProtocol";
 
 test("parseSessionUpdateParams accepts main-v2 command, plan, and location updates", () => {
@@ -43,7 +43,7 @@ test("parseSessionUpdateParams rejects unknown or malformed frames without throw
   assert.equal(malformed.ok, false);
 });
 
-test("parseSessionUpdateParams keeps legacy Reasonix usage updates compatible", () => {
+test("parseSessionUpdateParams keeps legacy Patty Code usage updates compatible", () => {
   assert.equal(parseSessionUpdateParams({
     sessionId: "s1",
     update: {
@@ -73,21 +73,21 @@ test("ACP client request parsers enforce required fields", () => {
   }).ok, true);
 });
 
-test("Reasonix status capability and current schema expose usage telemetry", () => {
+test("Patty Code status capability and current schema expose usage telemetry", () => {
   const capabilities = {
     _meta: {
-      [REASONIX_STATUS_METHOD]: { schemaVersion: 1 },
-      [REASONIX_STATUS_UPDATE_METHOD]: { schemaVersion: 1 },
+      [PATTY_STATUS_METHOD]: { schemaVersion: 1 },
+      [PATTY_STATUS_UPDATE_METHOD]: { schemaVersion: 1 },
     },
   };
-  assert.equal(supportsReasonixStatusMethod(capabilities, REASONIX_STATUS_METHOD), true);
-  assert.equal(supportsReasonixStatusMethod(capabilities, REASONIX_STATUS_UPDATE_METHOD), true);
-  assert.equal(supportsReasonixStatusMethod({ _meta: { [REASONIX_STATUS_METHOD]: { schemaVersion: 2 } } }, REASONIX_STATUS_METHOD), false);
+  assert.equal(supportsPattyStatusMethod(capabilities, PATTY_STATUS_METHOD), true);
+  assert.equal(supportsPattyStatusMethod(capabilities, PATTY_STATUS_UPDATE_METHOD), true);
+  assert.equal(supportsPattyStatusMethod({ _meta: { [PATTY_STATUS_METHOD]: { schemaVersion: 2 } } }, PATTY_STATUS_METHOD), false);
 
-  const status = reasonixStatus(7, 120, 30, 80, 40, 180, 60);
-  const parsed = parseReasonixSessionStatus(status);
+  const status = pattyStatus(7, 120, 30, 80, 40, 180, 60);
+  const parsed = parsePattySessionStatus(status);
   assert.equal(parsed.ok, true);
-  assert.deepEqual(parsed.ok ? usageDataFromReasonixStatus(parsed.value) : undefined, {
+  assert.deepEqual(parsed.ok ? usageDataFromPattyStatus(parsed.value) : undefined, {
     promptTokens: 120,
     completionTokens: 30,
     totalTokens: 150,
@@ -100,7 +100,7 @@ test("Reasonix status capability and current schema expose usage telemetry", () 
     currency: "USD",
   });
 
-  assert.equal(parseReasonixStatusUpdateParams({
+  assert.equal(parsePattyStatusUpdateParams({
     schemaVersion: 1,
     sequence: 7,
     sessionId: "s1",
@@ -109,10 +109,10 @@ test("Reasonix status capability and current schema expose usage telemetry", () 
   }).ok, true);
 });
 
-test("Reasonix status parser rejects malformed and mismatched snapshots", () => {
-  const status = reasonixStatus(7, 120, 30, 80, 40, 180, 60);
-  assert.equal(parseReasonixSessionStatus({ ...status, usage: { ...status.usage, turn: { ...status.usage.turn, promptTokens: -1 } } }).ok, false);
-  assert.equal(parseReasonixStatusUpdateParams({
+test("Patty Code status parser rejects malformed and mismatched snapshots", () => {
+  const status = pattyStatus(7, 120, 30, 80, 40, 180, 60);
+  assert.equal(parsePattySessionStatus({ ...status, usage: { ...status.usage, turn: { ...status.usage.turn, promptTokens: -1 } } }).ok, false);
+  assert.equal(parsePattyStatusUpdateParams({
     schemaVersion: 1,
     sequence: 8,
     sessionId: "s1",
@@ -121,7 +121,7 @@ test("Reasonix status parser rejects malformed and mismatched snapshots", () => 
   }).ok, false);
 });
 
-function reasonixStatus(
+function pattyStatus(
   sequence: number,
   promptTokens: number,
   completionTokens: number,

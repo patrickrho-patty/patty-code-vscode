@@ -52,9 +52,9 @@ test("replaceComposerTrigger inserts slash commands and resource mentions", () =
 });
 
 test("slashSuggestions filters commands and localizes details", () => {
-  const explain = slashSuggestions("ex", "zh-CN");
+  const explain = slashSuggestions("ex", "ko-KR");
   assert.equal(explain[0]?.name, "explain");
-  assert.match(explain[0]?.detail ?? "", /解释/);
+  assert.match(explain[0]?.detail ?? "", /설명/);
 
   const all = slashSuggestions("", "en");
   assert.equal(all[0]?.name, "help");

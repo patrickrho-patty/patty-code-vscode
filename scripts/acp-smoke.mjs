@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 
-const required = process.env.REASONIX_ACP_SMOKE_REQUIRED === "1";
-const independentAxesRequired = process.env.REASONIX_ACP_INDEPENDENT_AXES_REQUIRED === "1";
-const binary = process.env.REASONIX_BINARY || "reasonix";
-const timeoutMs = Number(process.env.REASONIX_ACP_SMOKE_TIMEOUT_MS || 15_000);
-const reasonixStatusMethod = "_reasonix.io/session/status";
+const required = process.env.PATTY_ACP_SMOKE_REQUIRED === "1";
+const independentAxesRequired = process.env.PATTY_ACP_INDEPENDENT_AXES_REQUIRED === "1";
+const binary = process.env.PATTY_BINARY || "patcode";
+const timeoutMs = Number(process.env.PATTY_ACP_SMOKE_TIMEOUT_MS || 15_000);
+const pattyStatusMethod = "_patty.io/session/status";
 
 const child = spawn(binary, ["acp"], {
   cwd: process.cwd(),
@@ -58,16 +58,16 @@ child.stderr.on("data", (chunk) => {
 child.on("error", (err) => {
   clearTimeout(timer);
   if (err && err.code === "ENOENT" && !required) {
-    console.log(`reasonix ACP smoke skipped: ${binary} was not found. Set REASONIX_BINARY or REASONIX_ACP_SMOKE_REQUIRED=1 to require it.`);
+    console.log(`patty ACP smoke skipped: ${binary} was not found. Set PATTY_BINARY or PATTY_ACP_SMOKE_REQUIRED=1 to require it.`);
     process.exit(0);
   }
-  console.error(`reasonix ACP smoke failed to start ${binary}: ${err.message}`);
+  console.error(`patty ACP smoke failed to start ${binary}: ${err.message}`);
   process.exit(1);
 });
 
 child.on("exit", () => {
   if (timedOut) {
-    console.error(`reasonix ACP smoke timed out after ${timeoutMs}ms.`);
+    console.error(`patty ACP smoke timed out after ${timeoutMs}ms.`);
     if (stderr.trim()) {
       console.error(stderr.trim());
     }
@@ -78,7 +78,7 @@ child.on("exit", () => {
 try {
   const init = await request("initialize", {
     protocolVersion: 1,
-    clientInfo: { name: "reasonix-vscode-smoke", version: "0.2.0" },
+    clientInfo: { name: "patty-code-vscode-smoke", version: "0.2.0" },
     clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
   });
   failOnError(init, "initialize");
@@ -93,15 +93,15 @@ try {
     throw new Error("session/new did not return a sessionId");
   }
 
-  let reasonixStatus = "not advertised";
-  const statusCapability = init.result.agentCapabilities._meta?.[reasonixStatusMethod];
+  let pattyStatus = "not advertised";
+  const statusCapability = init.result.agentCapabilities._meta?.[pattyStatusMethod];
   if (statusCapability?.schemaVersion === 1) {
-    const status = await request(reasonixStatusMethod, { sessionId });
-    failOnError(status, reasonixStatusMethod);
+    const status = await request(pattyStatusMethod, { sessionId });
+    failOnError(status, pattyStatusMethod);
     if (status.result?.schemaVersion !== 1 || status.result?.sessionId !== sessionId || !status.result?.usage?.turn || !status.result?.usage?.cumulative) {
-      throw new Error(`${reasonixStatusMethod} did not return a matching schema v1 usage snapshot`);
+      throw new Error(`${pattyStatusMethod} did not return a matching schema v1 usage snapshot`);
     }
-    reasonixStatus = "schema v1";
+    pattyStatus = "schema v1";
   }
 
   if (!Array.isArray(newSession.result?.configOptions) || !newSession.result?.modes) {
@@ -141,13 +141,13 @@ try {
     failOnError(await request("session/delete", { sessionId }), "session/delete");
   }
 
-  console.log("reasonix ACP smoke passed");
+  console.log("patty ACP smoke passed");
   console.log(`- initialize: ${describeResult(init)}`);
   console.log(`- session/new: ${sessionId}`);
   console.log(`- config options: ${newSession.result.configOptions.length}`);
   console.log(`- modes: ${newSession.result.modes.availableModes?.length ?? 0}`);
   console.log(`- independent axes: ${independentAxes ? "work_mode + tool_approval" : "legacy"}`);
-  console.log(`- Reasonix status: ${reasonixStatus}`);
+  console.log(`- Patty Code status: ${pattyStatus}`);
   console.log(`- session/list: ${sessions.result.sessions.length} session(s)`);
   child.kill();
   clearTimeout(timer);
@@ -155,7 +155,7 @@ try {
 } catch (err) {
   child.kill();
   clearTimeout(timer);
-  console.error(`reasonix ACP smoke failed: ${err instanceof Error ? err.message : String(err)}`);
+  console.error(`patty ACP smoke failed: ${err instanceof Error ? err.message : String(err)}`);
   if (stderr.trim()) {
     console.error(stderr.trim());
   }

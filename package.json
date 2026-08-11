@@ -1,17 +1,17 @@
 {
-  "name": "reasonix-agent",
-  "displayName": "Reasonix",
-  "description": "Cache-first Reasonix coding agent integration for VS Code.",
+  "name": "patty-code-vscode",
+  "displayName": "Patty Code for VS Code",
+  "description": "Cache-first Patty Code coding agent integration for VS Code.",
   "version": "0.3.2",
   "publisher": "SivanLiu",
   "license": "MIT",
-  "homepage": "https://github.com/SivanCola/reasonix-vscode#readme",
+  "homepage": "https://github.com/patrickrho-patty/patty-code-vscode#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SivanCola/reasonix-vscode.git"
+    "url": "git+https://github.com/patrickrho-patty/patty-code-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/SivanCola/reasonix-vscode/issues"
+    "url": "https://github.com/patrickrho-patty/patty-code-vscode/issues"
   },
   "galleryBanner": {
     "color": "#172033",
@@ -26,17 +26,17 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:reasonix.chat",
-    "onCommand:reasonix.openChat",
-    "onCommand:reasonix.newSession",
-    "onCommand:reasonix.sendSelection",
-    "onCommand:reasonix.cancelTurn",
-    "onCommand:reasonix.pickModel",
-    "onCommand:reasonix.pickEffort",
-    "onCommand:reasonix.pickUiLanguage",
-    "onCommand:reasonix.selectBinary",
-    "onCommand:reasonix.openSettings",
-    "onCommand:reasonix.showOutput"
+    "onView:pattyCode.chat",
+    "onCommand:pattyCode.openChat",
+    "onCommand:pattyCode.newSession",
+    "onCommand:pattyCode.sendSelection",
+    "onCommand:pattyCode.cancelTurn",
+    "onCommand:pattyCode.pickModel",
+    "onCommand:pattyCode.pickEffort",
+    "onCommand:pattyCode.pickUiLanguage",
+    "onCommand:pattyCode.selectBinary",
+    "onCommand:pattyCode.openSettings",
+    "onCommand:pattyCode.showOutput"
   ],
   "main": "./dist/extension.js",
   "files": [
@@ -50,102 +50,102 @@
     "scripts/verify-vsix-contents.mjs",
     "CHANGELOG.md",
     "README.md",
-    "README.zh-CN.md",
+    "README.en.md",
     "LICENSE",
     "package.json"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "reasonix.openChat",
-        "title": "Reasonix: Open Chat",
-        "category": "Reasonix"
+        "command": "pattyCode.openChat",
+        "title": "Patty Code: Open Chat",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.newSession",
-        "title": "Reasonix: New Session",
-        "category": "Reasonix"
+        "command": "pattyCode.newSession",
+        "title": "Patty Code: New Session",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.sendSelection",
-        "title": "Reasonix: Send Selection",
-        "category": "Reasonix"
+        "command": "pattyCode.sendSelection",
+        "title": "Patty Code: Send Selection",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.cancelTurn",
-        "title": "Reasonix: Cancel Turn",
-        "category": "Reasonix"
+        "command": "pattyCode.cancelTurn",
+        "title": "Patty Code: Cancel Turn",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.pickModel",
-        "title": "Reasonix: Pick Model",
-        "category": "Reasonix"
+        "command": "pattyCode.pickModel",
+        "title": "Patty Code: Pick Model",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.pickEffort",
-        "title": "Reasonix: Pick Effort",
-        "category": "Reasonix"
+        "command": "pattyCode.pickEffort",
+        "title": "Patty Code: Pick Effort",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.pickUiLanguage",
-        "title": "Reasonix: Pick UI Language",
-        "category": "Reasonix"
+        "command": "pattyCode.pickUiLanguage",
+        "title": "Patty Code: Pick UI Language",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.selectBinary",
-        "title": "Reasonix: Select CLI Binary",
-        "category": "Reasonix"
+        "command": "pattyCode.selectBinary",
+        "title": "Patty Code: Select CLI Binary",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.openSettings",
-        "title": "Reasonix: Open Settings",
-        "category": "Reasonix"
+        "command": "pattyCode.openSettings",
+        "title": "Patty Code: Open Settings",
+        "category": "Patty Code"
       },
       {
-        "command": "reasonix.showOutput",
-        "title": "Reasonix: Show Output",
-        "category": "Reasonix"
+        "command": "pattyCode.showOutput",
+        "title": "Patty Code: Show Output",
+        "category": "Patty Code"
       }
     ],
     "configuration": {
-      "title": "Reasonix",
+      "title": "Patty Code",
       "properties": {
-        "reasonix.binaryPath": {
+        "pattyCode.binaryPath": {
           "type": "string",
           "default": "",
-          "description": "Absolute path to the Reasonix CLI. When empty, the extension resolves reasonix from PATH."
+          "description": "Absolute path to the Patty Code CLI. When empty, the extension resolves `patcode` from PATH."
         },
-        "reasonix.model": {
+        "pattyCode.model": {
           "type": "string",
           "default": "",
-          "description": "Optional provider/model reference passed to reasonix acp --model."
+          "description": "Optional provider/model reference passed to `patcode acp --model`. Empty means use the Patty Code config default."
         },
-        "reasonix.uiLanguage": {
+        "pattyCode.uiLanguage": {
           "type": "string",
           "enum": [
             "auto",
             "en",
-            "zh-CN"
+            "ko-KR"
           ],
           "default": "auto",
-          "description": "Controls the Reasonix chat UI language.",
+          "description": "Controls the Patty Code chat UI language.",
           "enumDescriptions": [
             "Follow the VS Code display language.",
             "Use English.",
-            "Use Simplified Chinese."
+            "Use Korean."
           ]
         },
-        "reasonix.autoStart": {
+        "pattyCode.autoStart": {
           "type": "boolean",
           "default": false,
-          "description": "Start the Reasonix ACP process when the chat view is opened."
+          "description": "Start the Patty Code ACP process when the chat view is opened."
         },
-        "reasonix.trace": {
+        "pattyCode.trace": {
           "type": "boolean",
           "default": false,
-          "description": "Write ACP JSON-RPC traffic diagnostics to the Reasonix output channel."
+          "description": "Write ACP JSON-RPC traffic diagnostics to the Patty Code output channel."
         },
-        "reasonix.includeSelectionMode": {
+        "pattyCode.includeSelectionMode": {
           "type": "string",
           "enum": [
             "off",
@@ -160,57 +160,57 @@
     "menus": {
       "editor/context": [
         {
-          "command": "reasonix.sendSelection",
+          "command": "pattyCode.sendSelection",
           "when": "editorTextFocus",
           "group": "navigation@90"
         }
       ],
       "commandPalette": [
         {
-          "command": "reasonix.openChat"
+          "command": "pattyCode.openChat"
         },
         {
-          "command": "reasonix.newSession"
+          "command": "pattyCode.newSession"
         },
         {
-          "command": "reasonix.sendSelection"
+          "command": "pattyCode.sendSelection"
         },
         {
-          "command": "reasonix.cancelTurn"
+          "command": "pattyCode.cancelTurn"
         },
         {
-          "command": "reasonix.pickModel"
+          "command": "pattyCode.pickModel"
         },
         {
-          "command": "reasonix.pickEffort"
+          "command": "pattyCode.pickEffort"
         },
         {
-          "command": "reasonix.pickUiLanguage"
+          "command": "pattyCode.pickUiLanguage"
         },
         {
-          "command": "reasonix.selectBinary"
+          "command": "pattyCode.selectBinary"
         },
         {
-          "command": "reasonix.openSettings"
+          "command": "pattyCode.openSettings"
         },
         {
-          "command": "reasonix.showOutput"
+          "command": "pattyCode.showOutput"
         }
       ]
     },
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "reasonix",
-          "title": "Reasonix",
+          "id": "pattyCode",
+          "title": "Patty Code",
           "icon": "media/icon.svg"
         }
       ]
     },
     "views": {
-      "reasonix": [
+      "pattyCode": [
         {
-          "id": "reasonix.chat",
+          "id": "pattyCode.chat",
           "name": "Chat",
           "type": "webview"
         }
@@ -227,8 +227,8 @@
     "test:vscode": "npm run compile && node dist/test/vscode/runTest.js",
     "smoke:acp": "node scripts/acp-smoke.mjs",
     "debug:extension": "npm run lint && npm test && npm run test:vscode && npm run smoke:acp",
-    "package:vsix": "vsce package --no-dependencies -o dist/reasonix-vscode.vsix",
-    "verify:vsix-contents": "node scripts/verify-vsix-contents.mjs dist/reasonix-vscode.vsix",
+    "package:vsix": "vsce package --no-dependencies -o dist/patty-code-vscode.vsix",
+    "verify:vsix-contents": "node scripts/verify-vsix-contents.mjs dist/patty-code-vscode.vsix",
     "package": "vsce package",
     "vscode:prepublish": "npm run compile"
   },

@@ -3,8 +3,8 @@ import type {
   FSReadTextFileParams,
   FSWriteTextFileParams,
   PermissionRequestParams,
-  ReasonixSessionStatus,
-  ReasonixStatusUpdateParams,
+  PattySessionStatus,
+  PattyStatusUpdateParams,
   SessionConfigOption,
   SessionUpdate,
   SessionUpdateParams,
@@ -13,9 +13,9 @@ import type {
   UsageData,
 } from "./acpTypes";
 
-export const REASONIX_STATUS_METHOD = "_reasonix.io/session/status";
-export const REASONIX_STATUS_UPDATE_METHOD = "_reasonix.io/session/status_update";
-const REASONIX_STATUS_SCHEMA_VERSION = 1;
+export const PATTY_STATUS_METHOD = "_patty.io/session/status";
+export const PATTY_STATUS_UPDATE_METHOD = "_patty.io/session/status_update";
+const PATTY_STATUS_SCHEMA_VERSION = 1;
 
 export type ProtocolParseResult<T> =
   | { ok: true; value: T }
@@ -32,39 +32,39 @@ export function parseSessionUpdateParams(value: unknown): ProtocolParseResult<Se
   return valid({ sessionId: value.sessionId, update: update.value });
 }
 
-export function supportsReasonixStatusMethod(capabilities: unknown, method: string): boolean {
+export function supportsPattyStatusMethod(capabilities: unknown, method: string): boolean {
   if (!isRecord(capabilities) || !isRecord(capabilities._meta)) {
     return false;
   }
   const advertised = capabilities._meta[method];
-  return isRecord(advertised) && advertised.schemaVersion === REASONIX_STATUS_SCHEMA_VERSION;
+  return isRecord(advertised) && advertised.schemaVersion === PATTY_STATUS_SCHEMA_VERSION;
 }
 
-export function parseReasonixSessionStatus(value: unknown): ProtocolParseResult<ReasonixSessionStatus> {
-  if (!isRecord(value) || value.schemaVersion !== REASONIX_STATUS_SCHEMA_VERSION
+export function parsePattySessionStatus(value: unknown): ProtocolParseResult<PattySessionStatus> {
+  if (!isRecord(value) || value.schemaVersion !== PATTY_STATUS_SCHEMA_VERSION
     || !nonNegativeInteger(value.sequence) || !nonEmptyString(value.sessionId) || !isRecord(value.usage)
-    || !isReasonixStatusUsage(value.usage.turn) || !isReasonixStatusUsage(value.usage.cumulative)) {
-    return invalid("Reasonix session status is malformed");
+    || !isPattyStatusUsage(value.usage.turn) || !isPattyStatusUsage(value.usage.cumulative)) {
+    return invalid("Patty Code session status is malformed");
   }
-  return valid(value as unknown as ReasonixSessionStatus);
+  return valid(value as unknown as PattySessionStatus);
 }
 
-export function parseReasonixStatusUpdateParams(value: unknown): ProtocolParseResult<ReasonixStatusUpdateParams> {
-  if (!isRecord(value) || value.schemaVersion !== REASONIX_STATUS_SCHEMA_VERSION
+export function parsePattyStatusUpdateParams(value: unknown): ProtocolParseResult<PattyStatusUpdateParams> {
+  if (!isRecord(value) || value.schemaVersion !== PATTY_STATUS_SCHEMA_VERSION
     || !nonNegativeInteger(value.sequence) || !nonEmptyString(value.sessionId) || !nonEmptyString(value.event)) {
-    return invalid("Reasonix status update is malformed");
+    return invalid("Patty Code status update is malformed");
   }
-  const status = parseReasonixSessionStatus(value.status);
+  const status = parsePattySessionStatus(value.status);
   if (!status.ok) {
     return status;
   }
   if (status.value.sequence !== value.sequence || status.value.sessionId !== value.sessionId) {
-    return invalid("Reasonix status update does not match its status snapshot");
+    return invalid("Patty Code status update does not match its status snapshot");
   }
-  return valid(value as unknown as ReasonixStatusUpdateParams);
+  return valid(value as unknown as PattyStatusUpdateParams);
 }
 
-export function usageDataFromReasonixStatus(status: ReasonixSessionStatus): UsageData {
+export function usageDataFromPattyStatus(status: PattySessionStatus): UsageData {
   const turn = status.usage.turn;
   const cumulative = status.usage.cumulative;
   return {
@@ -238,7 +238,7 @@ function isUsage(value: unknown): boolean {
     .every((key) => typeof value[key] === "number" && Number.isFinite(value[key]));
 }
 
-function isReasonixStatusUsage(value: unknown): boolean {
+function isPattyStatusUsage(value: unknown): boolean {
   if (!isRecord(value)) {
     return false;
   }

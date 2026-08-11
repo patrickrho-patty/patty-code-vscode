@@ -66,8 +66,8 @@ jobs:
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reasonix-vscode-vsix
-          path: dist/reasonix-vscode.vsix
+          name: patty-code-vscode-vsix
+          path: dist/patty-vscode.vsix
           if-no-files-found: error
 
   windows-launcher:

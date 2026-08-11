@@ -7,7 +7,7 @@ const windowsExecutableExtensions = [".exe", ".com", ".cmd", ".bat"] as const;
 
 type PathExists = (candidate: string) => Promise<boolean>;
 
-export function selectReasonixPath(stdout: string, platform: NodeJS.Platform = process.platform): string | undefined {
+export function selectPattyPath(stdout: string, platform: NodeJS.Platform = process.platform): string | undefined {
   const candidates = stdout
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -18,7 +18,7 @@ export function selectReasonixPath(stdout: string, platform: NodeJS.Platform = p
   return candidates.find(isRunnableWindowsPath) ?? candidates[0];
 }
 
-export async function normalizeReasonixPath(
+export async function normalizePattyPath(
   configured: string,
   platform: NodeJS.Platform = process.platform,
   pathExists: PathExists = defaultPathExists,
@@ -48,7 +48,7 @@ export async function normalizeReasonixPath(
   return candidate;
 }
 
-export function spawnReasonix(binaryPath: string, args: readonly string[], cwd: string): ChildProcessWithoutNullStreams {
+export function spawnPatty(binaryPath: string, args: readonly string[], cwd: string): ChildProcessWithoutNullStreams {
   return crossSpawn(binaryPath, [...args], {
     cwd,
     env: process.env,
@@ -65,7 +65,7 @@ function isRunnableWindowsPath(candidate: string): boolean {
 async function findBundledWindowsExecutable(candidate: string, arch: string, pathExists: PathExists): Promise<string | undefined> {
   const extension = path.win32.extname(candidate);
   const commandName = path.win32.basename(candidate, extension);
-  if (commandName.toLowerCase() !== "reasonix") {
+  if (commandName.toLowerCase() !== "patcode") {
     return undefined;
   }
   const shimDirectory = path.win32.dirname(candidate);
@@ -74,8 +74,8 @@ async function findBundledWindowsExecutable(candidate: string, arch: string, pat
     : path.win32.join(shimDirectory, "node_modules");
   const platformPackage = `cli-win32-${arch}`;
   const executableCandidates = [
-    path.win32.join(nodeModules, "reasonix", "node_modules", "@reasonix", platformPackage, "bin", "reasonix.exe"),
-    path.win32.join(nodeModules, "@reasonix", platformPackage, "bin", "reasonix.exe"),
+    path.win32.join(nodeModules, "patty-code", "node_modules", "@patty-code", platformPackage, "bin", "patcode.exe"),
+    path.win32.join(nodeModules, "@patty-code", platformPackage, "bin", "patcode.exe"),
   ];
   for (const executable of executableCandidates) {
     if (await pathExists(executable)) {
