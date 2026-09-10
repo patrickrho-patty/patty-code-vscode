@@ -1768,7 +1768,7 @@ function renderSettings(state: Snapshot): void {
     content.append(
       settingsSection(
         label("apiConfiguration"),
-        staticSettingRow(label("apiProvider"), "Patty Code ACP"),
+        staticSettingRow(label("apiProvider"), "Mirr Code ACP"),
         staticSettingRow(label("mcpServers"), mcpSummary(state.mcp)),
         textSettingRow("binaryPath", label("cliPath"), state.settings.binaryPath, label("pathPlaceholder")),
         textSettingRow("model", label("modelOverride"), state.settings.model, label("modelPlaceholder")),
@@ -2037,7 +2037,7 @@ function renderEmptyState(state: Snapshot): HTMLElement {
   const brand = document.createElement("div");
   brand.className = "empty-brand";
   const brandName = document.createElement("span");
-  brandName.textContent = "Patty Code";
+  brandName.textContent = "Mirr Code";
   brand.append(mark, brandName);
   const title = document.createElement("div");
   title.className = "empty-title";
@@ -2922,7 +2922,7 @@ function roleLabel(role: "user" | "assistant" | "thought" | "notice"): string {
     case "user":
       return label("user");
     case "assistant":
-      return "Patty Code";
+      return "Mirr Code";
     case "thought":
       return label("thought");
     case "notice":
@@ -3325,7 +3325,7 @@ const labels: Record<"en" | "ko", Record<LabelKey, string>> = {
     composerControls: "Composer controls",
     connect: "Connect",
     connection: "Connection",
-    connectionFailed: "Patty Code could not connect",
+    connectionFailed: "Mirr Code could not connect",
     context: "Context",
     contextOff: "No editor context",
     continue: "Continue",
@@ -3345,7 +3345,7 @@ const labels: Record<"en" | "ko", Record<LabelKey, string>> = {
     file: "file",
     folder: "folder",
     fixSelection: "Fix selection",
-    idleTitle: "Patty Code is idle",
+    idleTitle: "Mirr Code is idle",
     input: "Input",
     inputTokens: "Input",
     insert: "Insert",
@@ -3378,7 +3378,7 @@ const labels: Record<"en" | "ko", Record<LabelKey, string>> = {
     other: "other",
     outputTokens: "Output",
     pending: "pending",
-    placeholder: "Message Patty Code...",
+    placeholder: "Message Mirr Code...",
     plan: "Plan",
     planDetail: "Read first, produce a plan, and wait before side effects.",
     composerHint: "/ commands · @ files/folders",
@@ -3386,11 +3386,11 @@ const labels: Record<"en" | "ko", Record<LabelKey, string>> = {
     pickModel: "Pick model",
     read: "read",
     question: "Question",
-    pattyNotConnected: "Patty Code is not connected",
+    pattyNotConnected: "Mirr Code is not connected",
     readyTitle: "Ready",
     reasoning: "Reasoning",
     reasoningEffort: "Reasoning effort",
-    reconnecting: "Reconnecting to Patty Code...",
+    reconnecting: "Reconnecting to Mirr Code...",
     reject: "Reject",
     result: "Result",
     retry: "Retry",
@@ -3434,7 +3434,7 @@ const labels: Record<"en" | "ko", Record<LabelKey, string>> = {
     yolo: "Yolo",
     yoloDetail: "Approve tool calls except protected decisions.",
     korean: "Korean",
-    cliPath: "Patty Code CLI",
+    cliPath: "Mirr Code CLI",
     interface: "Interface",
     openVsCodeSettings: "VS Code Settings",
     save: "Save",

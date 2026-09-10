@@ -62,7 +62,7 @@ export class DiffPreviewProvider implements vscode.TextDocumentContentProvider {
   }
 
   private async openPreview(target: vscode.Uri, oldText: string, nextText: string, workspaceFolder: vscode.WorkspaceFolder | undefined): Promise<void> {
-    const title = `Patty Code Preview: ${workspaceFolder ? path.relative(workspaceFolder.uri.fsPath, target.fsPath) : target.fsPath}`;
+    const title = `Mirr Code Preview: ${workspaceFolder ? path.relative(workspaceFolder.uri.fsPath, target.fsPath) : target.fsPath}`;
     const oldUri = oldText === "" ? this.putVirtual("old", target, oldText) : target;
     const newUri = this.putVirtual("new", target, nextText);
     await vscode.commands.executeCommand("vscode.diff", oldUri, newUri, title, { preview: true });

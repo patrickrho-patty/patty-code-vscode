@@ -52,6 +52,26 @@ test("a local npm bin shim resolves a hoisted packaged native executable", async
   );
 });
 
+test("a mirr npm cmd shim resolves the packaged mirr executable", async () => {
+  const configured = String.raw`C:\Users\dev\AppData\Roaming\npm\mirr.cmd`;
+  const executable = String.raw`C:\Users\dev\AppData\Roaming\npm\node_modules\patty-code\node_modules\@patty-code\cli-win32-x64\bin\mirr.exe`;
+
+  assert.equal(
+    await normalizePattyPath(configured, "win32", async (candidate) => candidate === executable, "x64"),
+    executable,
+  );
+});
+
+test("a mirr shim falls back to the packaged patcode executable of older layouts", async () => {
+  const configured = String.raw`C:\workspace\node_modules\.bin\mirr.cmd`;
+  const executable = String.raw`C:\workspace\node_modules\@patty-code\cli-win32-arm64\bin\patcode.exe`;
+
+  assert.equal(
+    await normalizePattyPath(configured, "win32", async (candidate) => candidate === executable, "arm64"),
+    executable,
+  );
+});
+
 test("an explicitly configured extensionless Windows shim falls back to its cmd sibling", async () => {
   const configured = String.raw`C:\Users\dev\AppData\Roaming\npm\patcode`;
 

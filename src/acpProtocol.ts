@@ -44,7 +44,7 @@ export function parsePattySessionStatus(value: unknown): ProtocolParseResult<Pat
   if (!isRecord(value) || value.schemaVersion !== PATTY_STATUS_SCHEMA_VERSION
     || !nonNegativeInteger(value.sequence) || !nonEmptyString(value.sessionId) || !isRecord(value.usage)
     || !isPattyStatusUsage(value.usage.turn) || !isPattyStatusUsage(value.usage.cumulative)) {
-    return invalid("Patty Code session status is malformed");
+    return invalid("Mirr Code session status is malformed");
   }
   return valid(value as unknown as PattySessionStatus);
 }
@@ -52,14 +52,14 @@ export function parsePattySessionStatus(value: unknown): ProtocolParseResult<Pat
 export function parsePattyStatusUpdateParams(value: unknown): ProtocolParseResult<PattyStatusUpdateParams> {
   if (!isRecord(value) || value.schemaVersion !== PATTY_STATUS_SCHEMA_VERSION
     || !nonNegativeInteger(value.sequence) || !nonEmptyString(value.sessionId) || !nonEmptyString(value.event)) {
-    return invalid("Patty Code status update is malformed");
+    return invalid("Mirr Code status update is malformed");
   }
   const status = parsePattySessionStatus(value.status);
   if (!status.ok) {
     return status;
   }
   if (status.value.sequence !== value.sequence || status.value.sessionId !== value.sessionId) {
-    return invalid("Patty Code status update does not match its status snapshot");
+    return invalid("Mirr Code status update does not match its status snapshot");
   }
   return valid(value as unknown as PattyStatusUpdateParams);
 }

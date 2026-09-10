@@ -64,8 +64,8 @@ function isRunnableWindowsPath(candidate: string): boolean {
 
 async function findBundledWindowsExecutable(candidate: string, arch: string, pathExists: PathExists): Promise<string | undefined> {
   const extension = path.win32.extname(candidate);
-  const commandName = path.win32.basename(candidate, extension);
-  if (commandName.toLowerCase() !== "patcode") {
+  const commandName = path.win32.basename(candidate, extension).toLowerCase();
+  if (commandName !== "patcode" && commandName !== "mirr") {
     return undefined;
   }
   const shimDirectory = path.win32.dirname(candidate);
@@ -73,9 +73,14 @@ async function findBundledWindowsExecutable(candidate: string, arch: string, pat
     ? path.win32.dirname(shimDirectory)
     : path.win32.join(shimDirectory, "node_modules");
   const platformPackage = `cli-win32-${arch}`;
+  // The typed shim resolves its own executable first; both spellings ship in
+  // the same platform package, so the other name is the fallback.
+  const fallbackName = commandName === "mirr" ? "patcode.exe" : "mirr.exe";
   const executableCandidates = [
-    path.win32.join(nodeModules, "patty-code", "node_modules", "@patty-code", platformPackage, "bin", "patcode.exe"),
-    path.win32.join(nodeModules, "@patty-code", platformPackage, "bin", "patcode.exe"),
+    path.win32.join(nodeModules, "patty-code", "node_modules", "@patty-code", platformPackage, "bin", `${commandName}.exe`),
+    path.win32.join(nodeModules, "@patty-code", platformPackage, "bin", `${commandName}.exe`),
+    path.win32.join(nodeModules, "patty-code", "node_modules", "@patty-code", platformPackage, "bin", fallbackName),
+    path.win32.join(nodeModules, "@patty-code", platformPackage, "bin", fallbackName),
   ];
   for (const executable of executableCandidates) {
     if (await pathExists(executable)) {

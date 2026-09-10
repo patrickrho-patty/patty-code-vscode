@@ -1,7 +1,7 @@
 {
   "name": "patty-code-vscode",
-  "displayName": "Patty Code for VS Code",
-  "description": "Cache-first Patty Code coding agent integration for VS Code.",
+  "displayName": "Mirr Code for VS Code",
+  "description": "Cache-first Mirr Code coding agent integration for VS Code.",
   "version": "0.3.2",
   "publisher": "SivanLiu",
   "license": "MIT",
@@ -58,67 +58,67 @@
     "commands": [
       {
         "command": "pattyCode.openChat",
-        "title": "Patty Code: Open Chat",
-        "category": "Patty Code"
+        "title": "Mirr Code: Open Chat",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.newSession",
-        "title": "Patty Code: New Session",
-        "category": "Patty Code"
+        "title": "Mirr Code: New Session",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.sendSelection",
-        "title": "Patty Code: Send Selection",
-        "category": "Patty Code"
+        "title": "Mirr Code: Send Selection",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.cancelTurn",
-        "title": "Patty Code: Cancel Turn",
-        "category": "Patty Code"
+        "title": "Mirr Code: Cancel Turn",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.pickModel",
-        "title": "Patty Code: Pick Model",
-        "category": "Patty Code"
+        "title": "Mirr Code: Pick Model",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.pickEffort",
-        "title": "Patty Code: Pick Effort",
-        "category": "Patty Code"
+        "title": "Mirr Code: Pick Effort",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.pickUiLanguage",
-        "title": "Patty Code: Pick UI Language",
-        "category": "Patty Code"
+        "title": "Mirr Code: Pick UI Language",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.selectBinary",
-        "title": "Patty Code: Select CLI Binary",
-        "category": "Patty Code"
+        "title": "Mirr Code: Select CLI Binary",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.openSettings",
-        "title": "Patty Code: Open Settings",
-        "category": "Patty Code"
+        "title": "Mirr Code: Open Settings",
+        "category": "Mirr Code"
       },
       {
         "command": "pattyCode.showOutput",
-        "title": "Patty Code: Show Output",
-        "category": "Patty Code"
+        "title": "Mirr Code: Show Output",
+        "category": "Mirr Code"
       }
     ],
     "configuration": {
-      "title": "Patty Code",
+      "title": "Mirr Code",
       "properties": {
         "pattyCode.binaryPath": {
           "type": "string",
           "default": "",
-          "description": "Absolute path to the Patty Code CLI. When empty, the extension resolves `patcode` from PATH."
+          "description": "Absolute path to the Mirr Code CLI. When empty, the extension resolves `mirr` from PATH, falling back to the `patcode` compatibility command."
         },
         "pattyCode.model": {
           "type": "string",
           "default": "",
-          "description": "Optional provider/model reference passed to `patcode acp --model`. Empty means use the Patty Code config default."
+          "description": "Optional provider/model reference passed to `mirr acp --model`. Empty means use the Mirr Code config default."
         },
         "pattyCode.uiLanguage": {
           "type": "string",
@@ -128,7 +128,7 @@
             "ko-KR"
           ],
           "default": "auto",
-          "description": "Controls the Patty Code chat UI language.",
+          "description": "Controls the Mirr Code chat UI language.",
           "enumDescriptions": [
             "Follow the VS Code display language.",
             "Use English.",
@@ -138,12 +138,12 @@
         "pattyCode.autoStart": {
           "type": "boolean",
           "default": false,
-          "description": "Start the Patty Code ACP process when the chat view is opened."
+          "description": "Start the Mirr Code ACP process when the chat view is opened."
         },
         "pattyCode.trace": {
           "type": "boolean",
           "default": false,
-          "description": "Write ACP JSON-RPC traffic diagnostics to the Patty Code output channel."
+          "description": "Write ACP JSON-RPC traffic diagnostics to the Mirr Code output channel."
         },
         "pattyCode.includeSelectionMode": {
           "type": "string",
@@ -202,7 +202,7 @@
       "activitybar": [
         {
           "id": "pattyCode",
-          "title": "Patty Code",
+          "title": "Mirr Code",
           "icon": "media/icon.svg"
         }
       ]

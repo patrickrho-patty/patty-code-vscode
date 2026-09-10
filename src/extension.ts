@@ -129,7 +129,7 @@ type PendingApproval = {
 };
 
 export function activate(context: vscode.ExtensionContext): void {
-  const output = vscode.window.createOutputChannel("Patty Code");
+  const output = vscode.window.createOutputChannel("Mirr Code");
   const preview = new DiffPreviewProvider();
   preview.register(context);
 
@@ -275,13 +275,13 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
   async newSession(): Promise<void> {
     const folder = this.currentWorkspaceFolder();
     if (!folder) {
-      void vscode.window.showErrorMessage("Open a workspace folder before starting Patty Code.");
+      void vscode.window.showErrorMessage("Open a workspace folder before starting Mirr Code.");
       return;
     }
     const key = workspaceKey(folder);
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before starting a new session.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before starting a new session.");
       return;
     }
     this.clearPendingApprovals(key);
@@ -292,7 +292,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       try {
         await current.closeSession();
       } catch (err) {
-        this.appendOutput(`Patty Code session close failed: ${errorMessage(err)}`, folder);
+        this.appendOutput(`Mirr Code session close failed: ${errorMessage(err)}`, folder);
       }
     }
     current?.dispose();
@@ -349,7 +349,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching model.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching model.");
       this.postSnapshot();
       return;
     }
@@ -370,7 +370,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         description: model.value === currentValue ? "current" : model.value,
         detail: model.description,
         value: model.value,
-      })), { title: "Patty Code model" });
+      })), { title: "Mirr Code model" });
       if (!picked || picked.value === currentValue) {
         return;
       }
@@ -383,9 +383,9 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       models = await client.listModels();
     } catch (err) {
       state.status = "Model list unavailable";
-      this.appendOutput(`Patty Code model list unavailable: ${errorMessage(err)}`, folder);
+      this.appendOutput(`Mirr Code model list unavailable: ${errorMessage(err)}`, folder);
       this.postSnapshot();
-      void vscode.window.showInformationMessage("This Patty Code backend did not advertise a model selector.", "Open Settings").then((action) => {
+      void vscode.window.showInformationMessage("This Mirr Code backend did not advertise a model selector.", "Open Settings").then((action) => {
         if (action === "Open Settings") {
           void vscode.commands.executeCommand("workbench.action.openSettings", "pattyCode.model");
         }
@@ -393,7 +393,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       return;
     }
     state.models = models.models;
-    const legacy = await vscode.window.showQuickPick(models.models.map((model) => ({ label: model.ref, model })), { title: "Patty Code model" });
+    const legacy = await vscode.window.showQuickPick(models.models.map((model) => ({ label: model.ref, model })), { title: "Mirr Code model" });
     if (legacy) {
       await vscode.workspace.getConfiguration("pattyCode").update("model", legacy.model.ref, vscode.ConfigurationTarget.Workspace);
       state.status = `Model: ${legacy.model.ref} (next session)`;
@@ -409,7 +409,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching effort.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching effort.");
       return;
     }
     const client = await this.ensureClient(folder);
@@ -424,7 +424,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         description: option.value === effortOption.currentValue ? "current" : option.value,
         detail: option.description,
         value: option.value,
-      })), { title: "Patty Code reasoning effort" });
+      })), { title: "Mirr Code reasoning effort" });
       if (!picked || picked.value === effortOption.currentValue) {
         return;
       }
@@ -432,7 +432,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       return;
     }
 
-    void vscode.window.showInformationMessage("The current Patty Code session did not advertise configurable reasoning effort.");
+    void vscode.window.showInformationMessage("The current Mirr Code session did not advertise configurable reasoning effort.");
   }
 
   private async setModel(value: string): Promise<void> {
@@ -444,7 +444,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching model.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching model.");
       this.postSnapshot();
       return;
     }
@@ -469,8 +469,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       state.status = `Model: ${option.label}`;
       await vscode.workspace.getConfiguration("pattyCode").update("model", value, vscode.ConfigurationTarget.Workspace);
     } catch (err) {
-      this.appendOutput(`Patty Code model update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showErrorMessage(`Patty Code could not switch models: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code model update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showErrorMessage(`Mirr Code could not switch models: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -485,7 +485,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching effort.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching effort.");
       this.postSnapshot();
       return;
     }
@@ -512,8 +512,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       this.syncSessionState(state, client.sessionState);
       state.status = `Effort: ${selection.name}`;
     } catch (err) {
-      this.appendOutput(`Patty Code effort update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Patty Code could not update reasoning effort: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code effort update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Mirr Code could not update reasoning effort: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -527,7 +527,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching execution method.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching execution method.");
       this.postSnapshot();
       return;
     }
@@ -549,8 +549,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       state.executionMode = value;
       state.status = `Execution: ${value}`;
     } catch (err) {
-      this.appendOutput(`Patty Code execution method update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Patty Code could not switch execution method: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code execution method update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Mirr Code could not switch execution method: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -564,7 +564,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching work mode.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching work mode.");
       this.postSnapshot();
       return;
     }
@@ -601,8 +601,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       state.workMode = value;
       state.status = `Work mode: ${value}`;
     } catch (err) {
-      this.appendOutput(`Patty Code work mode update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Patty Code could not switch work mode: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code work mode update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Mirr Code could not switch work mode: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -616,7 +616,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching tool approvals.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching tool approvals.");
       this.postSnapshot();
       return;
     }
@@ -648,8 +648,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       state.toolApprovalMode = value;
       state.status = `Tool approvals: ${value}`;
     } catch (err) {
-      this.appendOutput(`Patty Code tool approval update failed: ${errorMessage(err)}`, folder);
-      void vscode.window.showWarningMessage(`Patty Code could not switch tool approvals: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code tool approval update failed: ${errorMessage(err)}`, folder);
+      void vscode.window.showWarningMessage(`Mirr Code could not switch tool approvals: ${errorMessage(err)}`);
     } finally {
       this.postSnapshot();
     }
@@ -660,11 +660,11 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     const picked = await vscode.window.showQuickPick(
       [
         { label: "Auto", description: "Follow VS Code", value: "auto" satisfies UiLanguage },
-        { label: "English", description: "Patty Code UI", value: "en" satisfies UiLanguage },
-        { label: "한국어", description: "Patty Code 인터페이스", value: "ko-KR" satisfies UiLanguage },
+        { label: "English", description: "Mirr Code UI", value: "en" satisfies UiLanguage },
+        { label: "한국어", description: "Mirr Code 인터페이스", value: "ko-KR" satisfies UiLanguage },
       ],
       {
-        title: "Patty Code UI Language",
+        title: "Mirr Code UI Language",
         placeHolder: current,
       },
     );
@@ -863,12 +863,12 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
   private async loadSession(sessionId: string): Promise<void> {
     const folder = this.currentWorkspaceFolder();
     if (!folder) {
-      void vscode.window.showErrorMessage("Open a workspace folder before loading a Patty Code session.");
+      void vscode.window.showErrorMessage("Open a workspace folder before loading a Mirr Code session.");
       return;
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Patty Code is running. Cancel the current turn before switching sessions.");
+      void vscode.window.showWarningMessage("Mirr Code is running. Cancel the current turn before switching sessions.");
       return;
     }
     if (state.sessionId === sessionId && this.clients.get(workspaceKey(folder))?.connected) {
@@ -906,12 +906,12 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const state = this.stateFor(folder);
     if (state.running) {
-      void vscode.window.showWarningMessage("Cancel the current Patty Code turn before deleting a session.");
+      void vscode.window.showWarningMessage("Cancel the current Mirr Code turn before deleting a session.");
       return;
     }
     const entry = (state.sessions ?? this.sessionHistory(folder)).find((session) => session.id === sessionId);
     const action = await vscode.window.showWarningMessage(
-      `Delete Patty Code session "${entry?.title ?? sessionId}"?`,
+      `Delete Mirr Code session "${entry?.title ?? sessionId}"?`,
       { modal: true },
       "Delete",
     );
@@ -943,7 +943,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       }
       this.postSnapshot(transcriptReset ? 0 : undefined);
     } catch (err) {
-      void vscode.window.showErrorMessage(`Could not delete Patty Code session: ${errorMessage(err)}`);
+      void vscode.window.showErrorMessage(`Could not delete Mirr Code session: ${errorMessage(err)}`);
     }
   }
 
@@ -1011,7 +1011,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       attachments.push({ kind, name, uri: uri.toString(), mimeType });
     }
     if (skippedImage) {
-      const text = "The connected Patty Code does not support image prompts; image files were skipped.";
+      const text = "The connected Mirr Code does not support image prompts; image files were skipped.";
       if (state) {
         this.postSnapshot(appendNotice(state.items, text));
       } else {
@@ -1030,7 +1030,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     }
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      void vscode.window.showInformationMessage("Open an editor before inserting a Patty Code message.");
+      void vscode.window.showInformationMessage("Open an editor before inserting a Mirr Code message.");
       return;
     }
     await editor.edit((edit) => edit.insert(editor.selection.active, text));
@@ -1072,7 +1072,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     const target = path.resolve(root, location.path);
     const relative = path.relative(root, target);
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
-      void vscode.window.showWarningMessage("Patty Code tool locations outside the workspace cannot be opened.");
+      void vscode.window.showWarningMessage("Mirr Code tool locations outside the workspace cannot be opened.");
       return;
     }
     try {
@@ -1085,7 +1085,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
       }
     } catch (err) {
-      void vscode.window.showErrorMessage(`Could not open Patty Code tool location: ${errorMessage(err)}`);
+      void vscode.window.showErrorMessage(`Could not open Mirr Code tool location: ${errorMessage(err)}`);
     }
   }
 
@@ -1146,7 +1146,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
   ): Promise<void> {
     const folder = this.currentWorkspaceFolder();
     if (!folder) {
-      void vscode.window.showErrorMessage("Open a workspace folder before starting Patty Code.");
+      void vscode.window.showErrorMessage("Open a workspace folder before starting Mirr Code.");
       return;
     }
     const state = this.stateFor(folder);
@@ -1206,11 +1206,11 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         if (result.stopReason === "cancelled") {
           this.postSnapshot(appendNotice(state.items, "Turn cancelled."));
         } else if (result.stopReason === "error") {
-          this.postSnapshot(appendNotice(state.items, "Turn ended with an error. Check the Patty Code output channel."));
+          this.postSnapshot(appendNotice(state.items, "Turn ended with an error. Check the Mirr Code output channel."));
         }
       } catch (err) {
-        this.postSnapshot(appendNotice(state.items, `Patty Code error: ${errorMessage(err)}`));
-        this.appendOutput(`Patty Code prompt failed: ${errorMessage(err)}`, folder);
+        this.postSnapshot(appendNotice(state.items, `Mirr Code error: ${errorMessage(err)}`));
+        this.appendOutput(`Mirr Code prompt failed: ${errorMessage(err)}`, folder);
       } finally {
         state.running = false;
         state.status = state.disconnected ? "Disconnected" : "Idle";
@@ -1294,8 +1294,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         }
       }
     } catch (err) {
-      this.appendOutput(`Patty Code composer mode update failed: ${errorMessage(err)}`, folder);
-      throw new Error(`Could not apply Patty Code composer mode: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code composer mode update failed: ${errorMessage(err)}`, folder);
+      throw new Error(`Could not apply Mirr Code composer mode: ${errorMessage(err)}`);
     }
   }
 
@@ -1354,7 +1354,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       onUpdate: (params) => this.handleSessionUpdate(folder, params),
       onPermissionRequest: (params) => this.handlePermissionRequest(folder, params),
       onDisconnect: (reason) => {
-        this.appendOutput(`Patty Code ACP disconnected: ${reason}`, folder);
+        this.appendOutput(`Mirr Code ACP disconnected: ${reason}`, folder);
         if (this.clients.get(key) !== client) {
           return;
         }
@@ -1401,8 +1401,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       this.disposeTerminalBridge(key);
       state.disconnected = true;
       state.status = "Start failed";
-      const transcriptStart = appendNotice(state.items, `Could not start Patty Code: ${errorMessage(err)}`);
-      this.appendOutput(`Patty Code start failed: ${errorMessage(err)}`, folder);
+      const transcriptStart = appendNotice(state.items, `Could not start Mirr Code: ${errorMessage(err)}`);
+      this.appendOutput(`Mirr Code start failed: ${errorMessage(err)}`, folder);
       this.postSnapshot(transcriptStart);
       return undefined;
     }
@@ -1507,7 +1507,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       try {
         await this.preview.previewPermission(params, folder);
       } catch (err) {
-        this.appendOutput(`Patty Code diff preview failed: ${errorMessage(err)}`, folder);
+        this.appendOutput(`Mirr Code diff preview failed: ${errorMessage(err)}`, folder);
       }
     }
 
@@ -1523,7 +1523,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       try {
         await vscode.commands.executeCommand("pattyCode.openChat");
       } catch (err) {
-        this.appendOutput(`Could not reveal Patty Code approval: ${errorMessage(err)}`, folder);
+        this.appendOutput(`Could not reveal Mirr Code approval: ${errorMessage(err)}`, folder);
       }
     }
 
@@ -1559,7 +1559,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         params.options
           .filter((option) => !option.kind.startsWith("reject") && !option.optionId.endsWith(":cancel"))
           .map((option) => ({ label: option.name, optionId: option.optionId })),
-        { title: params.toolCall.title ?? "Patty Code question", placeHolder: "Choose an answer" },
+        { title: params.toolCall.title ?? "Mirr Code question", placeHolder: "Choose an answer" },
       );
       return picked ? { outcome: { outcome: "selected", optionId: picked.optionId } } : { outcome: { outcome: "cancelled" } };
     }
@@ -1638,7 +1638,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
         updatedAt: session.updatedAt ? Date.parse(session.updatedAt) || 0 : 0,
       })).sort((a, b) => b.updatedAt - a.updatedAt);
     } catch (err) {
-      this.appendOutput(`Patty Code session list failed: ${errorMessage(err)}`, folder);
+      this.appendOutput(`Mirr Code session list failed: ${errorMessage(err)}`, folder);
     }
   }
 
@@ -1651,7 +1651,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     const attempt = (this.reconnectAttempts.get(key) ?? 0) + 1;
     if (attempt > 3) {
       state.status = "Reconnect failed";
-      this.postSnapshot(appendNotice(state.items, "Patty Code disconnected repeatedly. Send another prompt to retry, or check the output channel."));
+      this.postSnapshot(appendNotice(state.items, "Mirr Code disconnected repeatedly. Send another prompt to retry, or check the output channel."));
       return;
     }
     this.reconnectAttempts.set(key, attempt);
@@ -1975,14 +1975,14 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
   <link rel="stylesheet" href="${styleUri}">
-  <title>Patty Code</title>
+  <title>Mirr Code</title>
 </head>
 <body data-patty-mark-src="${markUri}">
   <div class="shell">
     <aside class="session-rail" aria-labelledby="sessionRailTitle">
       <div class="session-rail__brand">
         <img src="${markUri}" alt="" aria-hidden="true">
-        <span>Patty Code</span>
+        <span>Mirr Code</span>
       </div>
       <button id="railNewSession" class="rail-new-session" type="button">
         <span aria-hidden="true">+</span>
@@ -2027,7 +2027,7 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
       <form id="composer" class="composer">
       <div id="connectionNotice" class="connection-notice" role="status" aria-live="polite" hidden>
         <span class="connection-notice__indicator" aria-hidden="true"></span>
-        <span id="connectionNoticeText" class="connection-notice__text">Patty Code is not connected</span>
+        <span id="connectionNoticeText" class="connection-notice__text">Mirr Code is not connected</span>
         <div class="connection-notice__actions">
           <button id="connectionConnect" class="connection-notice__action connection-notice__action--primary" type="button">Connect</button>
           <button id="connectionSettings" class="connection-notice__action" type="button" hidden>Settings</button>
@@ -2181,8 +2181,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
 
   private updateStatusBar(folder: vscode.WorkspaceFolder | undefined): void {
     if (!folder) {
-      this.statusBar.text = "$(sparkle) Patty Code";
-      this.statusBar.tooltip = "Open a workspace folder to use Patty Code.";
+      this.statusBar.text = "$(sparkle) Mirr Code";
+      this.statusBar.tooltip = "Open a workspace folder to use Mirr Code.";
       return;
     }
     const state = this.stateFor(folder);
@@ -2190,8 +2190,8 @@ class PattyChatProvider implements vscode.WebviewViewProvider, vscode.Disposable
     const usage = state.usage;
     const denom = usage ? usage.sessionCacheHitTokens + usage.sessionCacheMissTokens : 0;
     const hitRate = usage && denom > 0 ? Math.round((usage.sessionCacheHitTokens / denom) * 100) : undefined;
-    this.statusBar.text = hitRate === undefined ? `$(sparkle) Patty Code: ${visibleStatus}` : `$(sparkle) Patty Code cache ${hitRate}%`;
-    const tooltip = [`Patty Code ${folder.name}`, visibleStatus];
+    this.statusBar.text = hitRate === undefined ? `$(sparkle) Mirr Code: ${visibleStatus}` : `$(sparkle) Mirr Code cache ${hitRate}%`;
+    const tooltip = [`Mirr Code ${folder.name}`, visibleStatus];
     if (usage) {
       tooltip.push(`Tokens: ${usage.totalTokens}`);
     }
@@ -2212,17 +2212,19 @@ async function resolvePattyBinary(): Promise<string | undefined> {
     return await normalizePattyPath(configured);
   }
   const command = process.platform === "win32" ? "where" : "which";
-  try {
-    const { stdout } = await execFileAsync(command, ["patcode"]);
-    const resolved = selectPattyPath(stdout);
-    if (resolved) {
-      return await normalizePattyPath(resolved);
+  for (const name of ["mirr", "patcode"]) {
+    try {
+      const { stdout } = await execFileAsync(command, [name]);
+      const resolved = selectPattyPath(stdout);
+      if (resolved) {
+        return await normalizePattyPath(resolved);
+      }
+    } catch {
+      // Try the next supported command spelling.
     }
-  } catch {
-    // Fall through to the user-facing install prompt.
   }
   const action = await vscode.window.showErrorMessage(
-    "Patty Code CLI was not found on PATH. Select an installed binary or follow the Patty Code installation guide.",
+    "Mirr Code CLI was not found on PATH. Select an installed binary or follow the Mirr Code installation guide.",
     "Select Binary",
     "Installation Guide",
     "Open Settings",
@@ -2243,8 +2245,8 @@ async function selectPattyBinary(): Promise<string | undefined> {
     canSelectFiles: true,
     canSelectFolders: false,
     canSelectMany: false,
-    openLabel: "Use Patty Code CLI",
-    title: "Select the Patty Code executable",
+    openLabel: "Use Mirr Code CLI",
+    title: "Select the Mirr Code executable",
   });
   const selected = picked?.[0]?.fsPath;
   if (!selected) {
@@ -2357,7 +2359,7 @@ function isSessionSummary(value: unknown): value is SessionSummary {
 }
 
 function permissionNotification(params: PermissionRequestParams): string {
-  const lines = [`Patty Code wants to run ${params.toolCall.title ?? "a tool"}.`];
+  const lines = [`Mirr Code wants to run ${params.toolCall.title ?? "a tool"}.`];
   if (params.toolCall.preview) {
     lines.push(`${params.toolCall.preview.path} (+${params.toolCall.preview.added} -${params.toolCall.preview.removed})`);
   }

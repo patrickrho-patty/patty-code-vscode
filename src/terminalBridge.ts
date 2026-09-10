@@ -35,7 +35,7 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
 
   async create(params: TerminalCreateParams): Promise<TerminalCreateResult> {
     if (!vscode.workspace.isTrusted) {
-      throw new Error("Workspace trust is required for Patty Code terminal commands");
+      throw new Error("Workspace trust is required for Mirr Code terminal commands");
     }
     const cwd = await this.resolveCwd(params.cwd);
     const args = params.args ?? [];
@@ -51,7 +51,7 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
         child.kill();
       }
     });
-    const terminal = vscode.window.createTerminal({ name: `Patty Code: ${commandLabel(params.command)}`, pty });
+    const terminal = vscode.window.createTerminal({ name: `Mirr Code: ${commandLabel(params.command)}`, pty });
     let resolveExit!: (status: TerminalWaitResult) => void;
     const exited = new Promise<TerminalWaitResult>((resolve) => { resolveExit = resolve; });
     const record: TerminalRecord = {
@@ -127,7 +127,7 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
   private requireTerminal(id: string): TerminalRecord {
     const record = this.terminals.get(id);
     if (!record) {
-      throw new Error(`Unknown Patty Code terminal: ${id}`);
+      throw new Error(`Unknown Mirr Code terminal: ${id}`);
     }
     return record;
   }
@@ -137,12 +137,12 @@ export class WorkspaceTerminalBridge implements vscode.Disposable {
     const cwd = path.resolve(root, requested || ".");
     const relative = path.relative(root, cwd);
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
-      throw new Error("Patty Code terminal cwd is limited to the active workspace folder");
+      throw new Error("Mirr Code terminal cwd is limited to the active workspace folder");
     }
     const [realRoot, realCwd] = await Promise.all([fs.realpath(root), fs.realpath(cwd)]);
     const realRelative = path.relative(realRoot, realCwd);
     if (realRelative.startsWith("..") || path.isAbsolute(realRelative)) {
-      throw new Error("Patty Code terminal cwd cannot follow a symlink outside the workspace");
+      throw new Error("Mirr Code terminal cwd cannot follow a symlink outside the workspace");
     }
     return realCwd;
   }

@@ -13,13 +13,13 @@ export type SlashSuggestion = SlashCommandInfo & {
 };
 
 const koSlashDescriptions: Record<string, string> = {
-  help: "내장된 Patty Code 슬래시 명령을 확인합니다.",
+  help: "내장된 Mirr Code 슬래시 명령을 확인합니다.",
   explain: "코드, 파일 또는 작업 영역의 일부를 설명합니다.",
   fix: "지정한 문제 또는 코드 영역을 수정합니다.",
   tests: "관련 테스트를 실행하고 위치를 찾거나 진단합니다.",
   search: "저장소를 검색하고 핵심 파일을 요약합니다.",
   mcp: "MCP 컨텍스트를 확인하고 관련 도구를 사용합니다.",
-  skills: "상황에 맞는 Patty Code/Codex 스킬을 사용합니다.",
+  skills: "상황에 맞는 Mirr Code/Codex 스킬을 사용합니다.",
 };
 
 export function getComposerTrigger(value: string, selectionStart: number, selectionEnd = selectionStart): ComposerTrigger | undefined {

@@ -147,7 +147,7 @@ export class AcpClient {
     });
     this.child.on("close", (code, signal) => {
       const reason = signal ? `signal ${signal}` : `exit ${code ?? "unknown"}`;
-      this.peer?.close(new Error(`Patty Code ACP closed: ${reason}`));
+      this.peer?.close(new Error(`Mirr Code ACP closed: ${reason}`));
       this.peer = undefined;
       this.child = undefined;
       this.runningPrompt = false;
@@ -156,7 +156,7 @@ export class AcpClient {
 
     this.initialized = await this.peer.sendRequest<InitializeResult>("initialize", {
       protocolVersion: 1,
-      clientInfo: { name: "patty-code-vscode", title: "Patty Code for VS Code", version: "0.3.2" },
+      clientInfo: { name: "patty-code-vscode", title: "Mirr Code for VS Code", version: "0.3.2" },
       clientCapabilities: {
         fs: {
           readTextFile: this.options.fileSystem !== undefined,
@@ -176,7 +176,7 @@ export class AcpClient {
         await this.syncPattyStatus();
         return { sessionId: previous, isNewSession: false };
       } catch (err) {
-        this.appendLine(`Could not restore Patty Code session ${previous}: ${errorMessage(err)}`);
+        this.appendLine(`Could not restore Mirr Code session ${previous}: ${errorMessage(err)}`);
         this.sessionId = undefined;
       }
     }
@@ -186,7 +186,7 @@ export class AcpClient {
       mcpServers: [],
     });
     if (!created || typeof created.sessionId !== "string" || created.sessionId.trim() === "") {
-      throw new Error("Patty Code returned an invalid session/new result");
+      throw new Error("Mirr Code returned an invalid session/new result");
     }
     this.sessionId = created.sessionId;
     this.applySessionState(created);
@@ -275,7 +275,7 @@ export class AcpClient {
   }
 
   dispose(): void {
-    this.peer?.close(new Error("Patty Code ACP disposed"));
+    this.peer?.close(new Error("Mirr Code ACP disposed"));
     this.peer = undefined;
     if (this.child && !this.child.killed) {
       this.child.kill();
@@ -304,7 +304,7 @@ export class AcpClient {
       }
       const parsedStatus = parsePattyStatusUpdateParams(params);
       if (!parsedStatus.ok) {
-        this.appendLine(`Ignoring invalid Patty Code status update: ${parsedStatus.error}`);
+        this.appendLine(`Ignoring invalid Mirr Code status update: ${parsedStatus.error}`);
         return;
       }
       this.acceptPattyStatus(parsedStatus.value.status, parsedStatus.value.event);
@@ -336,18 +336,18 @@ export class AcpClient {
       const raw = await this.requirePeer().sendRequest<unknown>(PATTY_STATUS_METHOD, { sessionId: this.requireSession() });
       const parsed = parsePattySessionStatus(raw);
       if (!parsed.ok) {
-        this.appendLine(`Ignoring invalid Patty Code session status: ${parsed.error}`);
+        this.appendLine(`Ignoring invalid Mirr Code session status: ${parsed.error}`);
         return;
       }
       this.acceptPattyStatus(parsed.value);
     } catch (err) {
-      this.appendLine(`Could not read Patty Code session status: ${errorMessage(err)}`);
+      this.appendLine(`Could not read Mirr Code session status: ${errorMessage(err)}`);
     }
   }
 
   private acceptPattyStatus(status: PattySessionStatus, event?: string): void {
     if (status.sessionId !== this.sessionId) {
-      this.appendLine(`Ignoring Patty Code status for inactive session ${status.sessionId}`);
+      this.appendLine(`Ignoring Mirr Code status for inactive session ${status.sessionId}`);
       return;
     }
     const previous = this.statusSequences.get(status.sessionId);
@@ -430,28 +430,28 @@ export class AcpClient {
 
   private requireFileSystem(): AcpFileSystem {
     if (!this.options.fileSystem) {
-      throw new Error("Patty Code requested filesystem access that the client did not advertise");
+      throw new Error("Mirr Code requested filesystem access that the client did not advertise");
     }
     return this.options.fileSystem;
   }
 
   private requireTerminal(): AcpTerminal {
     if (!this.options.terminal) {
-      throw new Error("Patty Code requested a terminal that the client did not advertise");
+      throw new Error("Mirr Code requested a terminal that the client did not advertise");
     }
     return this.options.terminal;
   }
 
   private requirePeer(): JsonRpcPeer {
     if (!this.peer) {
-      throw new Error("Patty Code ACP is not connected");
+      throw new Error("Mirr Code ACP is not connected");
     }
     return this.peer;
   }
 
   private requireSession(): string {
     if (!this.sessionId) {
-      throw new Error("Patty Code session is not ready");
+      throw new Error("Mirr Code session is not ready");
     }
     return this.sessionId;
   }
